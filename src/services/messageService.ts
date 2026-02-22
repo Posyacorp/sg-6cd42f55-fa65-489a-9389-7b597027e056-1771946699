@@ -194,9 +194,11 @@ export const messageService = {
 
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      const { data, error } = await (supabase.rpc as any)("get_unread_message_count", {
+      const result: any = await supabase.rpc("get_unread_message_count", {
         p_user_id: userId,
       });
+      
+      const { data, error } = result;
 
       if (error) throw error;
       return { data: data || 0, error: null };
