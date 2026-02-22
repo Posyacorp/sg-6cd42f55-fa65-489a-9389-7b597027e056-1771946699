@@ -10,6 +10,7 @@ interface AuthState {
   isAdmin: boolean;
   isAgency: boolean;
   isAnchor: boolean;
+  profile: any | null;
 }
 
 export function useAuth() {
@@ -20,6 +21,7 @@ export function useAuth() {
     isAdmin: false,
     isAgency: false,
     isAnchor: false,
+    profile: null,
   });
   const router = useRouter();
 
@@ -48,6 +50,7 @@ export function useAuth() {
         isAdmin: false,
         isAgency: false,
         isAnchor: false,
+        profile: null,
       });
       return;
     }
@@ -56,7 +59,7 @@ export function useAuth() {
     // For now we'll fetch the profile to be sure about the role
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("*")
       .eq("id", session.user.id)
       .single();
 
@@ -69,6 +72,7 @@ export function useAuth() {
       isAdmin: role === "admin",
       isAgency: role === "agency",
       isAnchor: role === "anchor",
+      profile,
     });
   };
 

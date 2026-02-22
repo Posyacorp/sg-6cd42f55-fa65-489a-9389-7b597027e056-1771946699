@@ -56,7 +56,7 @@ export default function UserDashboard() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout role="user">
         <div className="flex items-center justify-center h-96">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
@@ -65,7 +65,7 @@ export default function UserDashboard() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout role="user">
       <div className="space-y-6">
         {/* Welcome Section */}
         <div>

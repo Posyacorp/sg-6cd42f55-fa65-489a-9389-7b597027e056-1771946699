@@ -76,7 +76,7 @@ export default function UserReferrals() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout role="user">
         <div className="flex items-center justify-center h-96">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
@@ -87,7 +87,7 @@ export default function UserReferrals() {
   const referralLink = `${typeof window !== "undefined" ? window.location.origin : ""}/auth/register?ref=${referralCode}`;
 
   return (
-    <DashboardLayout>
+    <DashboardLayout role="user">
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Referral Program</h1>
