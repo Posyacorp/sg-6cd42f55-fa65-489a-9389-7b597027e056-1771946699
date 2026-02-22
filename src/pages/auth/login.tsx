@@ -7,6 +7,7 @@ import { Coins, ArrowLeft, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { authService } from "@/services/authService";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
