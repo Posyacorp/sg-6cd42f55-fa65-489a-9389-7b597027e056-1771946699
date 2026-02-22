@@ -194,39 +194,12 @@ export const messageService = {
 
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      // Step 1: Get user's conversation IDs separately to avoid type complexity
-      const convIds: string[] = [];
-      
-      const { data: c1 } = await supabase
-        .from("conversations")
-        .select("id")
-        .eq("user1_id", userId);
-      
-      const { data: c2 } = await supabase
-        .from("conversations")
-        .select("id")
-        .eq("user2_id", userId);
+      const { data, error } = await supabase.rpc("get_unread_message_count", {
+        p_user_id: userId,
+      });
 
-      if (c1) convIds.push(...c1.map(c => c.id));
-      if (c2) convIds.push(...c2.map(c => c.id));
-
-      const uniqueIds = Array.from(new Set(convIds));
-      if (uniqueIds.length === 0) return { data: 0, error: null };
-
-      // Step 2: Count unread messages across all conversations
-      let total = 0;
-      for (const cid of uniqueIds) {
-        const { data } = await supabase
-          .from("messages")
-          .select("id")
-          .eq("conversation_id", cid)
-          .neq("sender_id", userId)
-          .eq("is_read", false);
-        
-        total += data?.length || 0;
-      }
-
-      return { data: total, error: null };
+      if (error) throw error;
+      return { data: data || 0, error: null };
     } catch (error) {
       console.error("Error getting unread count:", error);
       return { data: null, error };

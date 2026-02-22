@@ -1000,6 +1000,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_unread_message_count: { Args: { p_user_id: string }; Returns: number }
       update_wallet_balance: {
         Args: { p_amount: number; p_currency: string; p_user_id: string }
         Returns: undefined
