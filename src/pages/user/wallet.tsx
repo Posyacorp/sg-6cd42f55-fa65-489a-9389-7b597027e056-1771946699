@@ -1,9 +1,10 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { exportToCSV } from "@/lib/export";
 import { 
   LayoutDashboard, 
   Compass, 
@@ -16,26 +17,29 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
-  Plus
+  Plus,
+  Download
 } from "lucide-react";
 
-const navItems = [
-  { label: "Dashboard", href: "/user/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Explore", href: "/user/explore", icon: <Compass className="w-4 h-4" /> },
-  { label: "Messages", href: "/user/messages", icon: <MessageSquare className="w-4 h-4" /> },
-  { label: "Wallet", href: "/user/wallet", icon: <Wallet className="w-4 h-4" /> },
-  { label: "Profile", href: "/user/profile", icon: <User className="w-4 h-4" /> },
-  { label: "Referrals", href: "/user/referrals", icon: <Users className="w-4 h-4" /> },
-  { label: "Withdraw", href: "/user/withdraw", icon: <DollarSign className="w-4 h-4" /> }
-];
-
 export default function UserWallet() {
+  const transactions = [
+    { type: "Coin Purchase", amount: "+500 coins", value: "$500.00", time: "Today, 10:30 AM", status: "completed" },
+    { type: "Gift Sent", amount: "-50 coins", value: "-$50.00", time: "Today, 09:15 AM", status: "completed" },
+    { type: "Reward Earned", amount: "+40 tokens", value: "$40.00", time: "Yesterday, 08:45 PM", status: "completed" },
+    { type: "Referral Bonus", amount: "+25 tokens", value: "$25.00", time: "Yesterday, 03:20 PM", status: "completed" },
+    { type: "Gift Sent", amount: "-100 coins", value: "-$100.00", time: "2 days ago", status: "completed" }
+  ];
+
+  const handleExport = () => {
+    exportToCSV(transactions, "wallet_transactions");
+  };
+
   return (
     <>
-      <SEO title="Wallet - Pukaarly User" />
-      <DashboardLayout navItems={navItems} role="user">
+      <SEO title="Wallet - Pukaarly" />
+      <DashboardLayout role="user">
         <div className="space-y-6">
-          <div>
+          <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">Wallet</h1>
             <p className="text-gray-600 dark:text-gray-400">Manage your coins and tokens</p>
           </div>
@@ -125,33 +129,39 @@ export default function UserWallet() {
           {/* Transaction History */}
           <Card>
             <CardHeader>
-              <CardTitle>Transaction History</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Transaction History</CardTitle>
+                <Button onClick={handleExport} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[
-                  { type: "Coin Purchase", amount: "+500 coins", value: "$500.00", time: "Today, 10:30 AM", icon: <ArrowUpRight className="w-4 h-4" />, color: "text-green-600" },
-                  { type: "Gift Sent", amount: "-50 coins", value: "", time: "Today, 09:15 AM", icon: <ArrowDownRight className="w-4 h-4" />, color: "text-red-600" },
-                  { type: "Reward Earned", amount: "+40 tokens", value: "", time: "Yesterday, 08:45 PM", icon: <ArrowUpRight className="w-4 h-4" />, color: "text-green-600" },
-                  { type: "Referral Bonus", amount: "+25 tokens", value: "", time: "Yesterday, 03:20 PM", icon: <ArrowUpRight className="w-4 h-4" />, color: "text-green-600" },
-                  { type: "Gift Sent", amount: "-100 coins", value: "", time: "2 days ago", icon: <ArrowDownRight className="w-4 h-4" />, color: "text-red-600" }
-                ].map((tx, i) => (
-                  <div key={i} className="flex items-center justify-between py-4 border-b last:border-0 border-gray-200 dark:border-gray-800">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center ${tx.color}`}>
-                        {tx.icon}
+                {transactions.map((tx, i) => {
+                  const isPositive = tx.amount.startsWith('+');
+                  const color = isPositive ? "text-green-600" : "text-red-600";
+                  const icon = isPositive ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />;
+                  
+                  return (
+                    <div key={i} className="flex items-center justify-between py-4 border-b last:border-0 border-gray-200 dark:border-gray-800">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center ${color}`}>
+                          {icon}
+                        </div>
+                        <div>
+                          <p className="font-medium">{tx.type}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{tx.time}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{tx.type}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{tx.time}</p>
+                      <div className="text-right">
+                        <p className={`font-semibold ${color}`}>{tx.amount}</p>
+                        {tx.value && <p className="text-sm text-gray-600 dark:text-gray-400">{tx.value}</p>}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className={`font-semibold ${tx.color}`}>{tx.amount}</p>
-                      {tx.value && <p className="text-sm text-gray-600 dark:text-gray-400">{tx.value}</p>}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

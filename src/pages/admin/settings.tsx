@@ -1,6 +1,6 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -31,8 +31,8 @@ const navItems = [
 export default function AdminSettings() {
   return (
     <>
-      <SEO title="Platform Settings - Pukaarly Admin" />
-      <DashboardLayout navItems={navItems} role="admin">
+      <SEO title="Settings - Pukaarly Admin" />
+      <DashboardLayout role="admin">
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Platform Settings</h1>

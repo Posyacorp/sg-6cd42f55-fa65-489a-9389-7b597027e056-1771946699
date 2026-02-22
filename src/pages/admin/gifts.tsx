@@ -1,6 +1,6 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -31,10 +31,24 @@ const navItems = [
 ];
 
 export default function AdminGifts() {
+  const gifts = [
+    { emoji: "❤️", name: "Heart", price: 10 },
+    { emoji: "🌹", name: "Rose", price: 20 },
+    { emoji: "💐", name: "Bouquet", price: 30 },
+    { emoji: "🎁", name: "Gift Box", price: 50 },
+    { emoji: "💎", name: "Diamond", price: 100 },
+    { emoji: "👑", name: "Crown", price: 150 },
+    { emoji: "🏆", name: "Trophy", price: 180 },
+    { emoji: "🎪", name: "Carnival", price: 200 },
+    { emoji: "🚗", name: "Sports Car", price: 500 },
+    { emoji: "🏰", name: "Castle", price: 800 },
+    { emoji: "✈️", name: "Private Jet", price: 1000 },
+    { emoji: "🏝️", name: "Island", price: 2000 }
+  ];
   return (
     <>
-      <SEO title="Gift Management - Pukaarly Admin" />
-      <DashboardLayout navItems={navItems} role="admin">
+      <SEO title="Gifts - Pukaarly Admin" />
+      <DashboardLayout role="admin">
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>

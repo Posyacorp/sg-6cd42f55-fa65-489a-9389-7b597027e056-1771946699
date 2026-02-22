@@ -1,9 +1,10 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { exportToCSV } from "@/lib/export";
 import { 
   LayoutDashboard, 
   Compass, 
@@ -14,26 +15,28 @@ import {
   DollarSign,
   Copy,
   Share2,
-  TrendingUp
+  TrendingUp,
+  Download
 } from "lucide-react";
 
-const navItems = [
-  { label: "Dashboard", href: "/user/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Explore", href: "/user/explore", icon: <Compass className="w-4 h-4" /> },
-  { label: "Messages", href: "/user/messages", icon: <MessageSquare className="w-4 h-4" /> },
-  { label: "Wallet", href: "/user/wallet", icon: <Wallet className="w-4 h-4" /> },
-  { label: "Profile", href: "/user/profile", icon: <User className="w-4 h-4" /> },
-  { label: "Referrals", href: "/user/referrals", icon: <Users className="w-4 h-4" /> },
-  { label: "Withdraw", href: "/user/withdraw", icon: <DollarSign className="w-4 h-4" /> }
-];
-
 export default function UserReferrals() {
+  const referrals = [
+    { name: "Alice Johnson", joined: "2 days ago", earned: "$45", level: 1, status: "active" },
+    { name: "Bob Smith", joined: "1 week ago", earned: "$120", level: 1, status: "active" },
+    { name: "Carol White", joined: "2 weeks ago", earned: "$85", level: 1, status: "active" },
+    { name: "David Brown", joined: "3 weeks ago", earned: "$90", level: 1, status: "active" }
+  ];
+
+  const handleExport = () => {
+    exportToCSV(referrals, "referrals");
+  };
+
   return (
     <>
-      <SEO title="Referrals - Pukaarly User" />
-      <DashboardLayout navItems={navItems} role="user">
+      <SEO title="Referrals - Pukaarly" />
+      <DashboardLayout role="user">
         <div className="space-y-6">
-          <div>
+          <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">Referral Program</h1>
             <p className="text-gray-600 dark:text-gray-400">Earn rewards by inviting friends</p>
           </div>
@@ -135,16 +138,17 @@ export default function UserReferrals() {
           {/* Referral List */}
           <Card>
             <CardHeader>
-              <CardTitle>Your Referrals</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Your Referrals</CardTitle>
+                <Button onClick={handleExport} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[
-                  { name: "Alice Johnson", joined: "2 days ago", earned: "$45", level: 1, status: "active" },
-                  { name: "Bob Smith", joined: "1 week ago", earned: "$120", level: 1, status: "active" },
-                  { name: "Carol White", joined: "2 weeks ago", earned: "$85", level: 1, status: "active" },
-                  { name: "David Brown", joined: "3 weeks ago", earned: "$90", level: 1, status: "active" }
-                ].map((ref, i) => (
+                {referrals.map((ref, i) => (
                   <div key={i} className="flex items-center justify-between py-4 border-b last:border-0 border-gray-200 dark:border-gray-800">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-semibold">

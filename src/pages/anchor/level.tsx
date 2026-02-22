@@ -1,6 +1,6 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   LayoutDashboard, 
@@ -11,14 +11,6 @@ import {
   Trophy,
   Target
 } from "lucide-react";
-
-const navItems = [
-  { label: "Dashboard", href: "/anchor/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Income", href: "/anchor/income", icon: <DollarSign className="w-4 h-4" /> },
-  { label: "Call Price", href: "/anchor/call-price", icon: <Settings className="w-4 h-4" /> },
-  { label: "Level", href: "/anchor/level", icon: <TrendingUp className="w-4 h-4" /> },
-  { label: "Withdraw", href: "/anchor/withdraw", icon: <DollarSign className="w-4 h-4" /> }
-];
 
 const levels = [
   { level: 1, name: "Novice", sessions: "0-50", badge: "🌱", benefits: ["Basic profile visibility", "Standard support"] },
@@ -34,12 +26,18 @@ export default function AnchorLevel() {
 
   return (
     <>
-      <SEO title="Level & Progress - Pukaarly Anchor" />
-      <DashboardLayout navItems={navItems} role="anchor">
+      <SEO title="Level Progress - Pukaarly Anchor" />
+      <DashboardLayout role="anchor">
         <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Level & Progress</h1>
-            <p className="text-gray-600 dark:text-gray-400">Track your growth and unlock rewards</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Level & Progress</h1>
+              <p className="text-gray-600 dark:text-gray-400">Track your growth and unlock rewards</p>
+            </div>
+            <div className="text-right">
+              <div className="text-4xl font-bold">234</div>
+              <p className="text-purple-100">Total Sessions</p>
+            </div>
           </div>
 
           {/* Current Level Card */}

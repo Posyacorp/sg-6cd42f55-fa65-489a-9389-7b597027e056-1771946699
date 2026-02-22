@@ -1,6 +1,6 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,23 +16,17 @@ import {
   MessageSquare
 } from "lucide-react";
 
-const navItems = [
-  { label: "Dashboard", href: "/agency/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Anchors", href: "/agency/anchors", icon: <Users className="w-4 h-4" /> },
-  { label: "Commission", href: "/agency/commission", icon: <DollarSign className="w-4 h-4" /> },
-  { label: "Withdrawals", href: "/agency/withdrawals", icon: <TrendingUp className="w-4 h-4" /> },
-  { label: "Invite", href: "/agency/invite", icon: <UserPlus className="w-4 h-4" /> }
-];
-
 export default function AgencyInvite() {
   return (
     <>
       <SEO title="Invite Anchors - Pukaarly Agency" />
-      <DashboardLayout navItems={navItems} role="agency">
-        <div className="space-y-6 max-w-4xl">
-          <div>
-            <h1 className="text-3xl font-bold">Invite New Anchors</h1>
-            <p className="text-gray-600 dark:text-gray-400">Grow your agency by inviting talented hosts</p>
+      <DashboardLayout role="agency">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Invite New Anchors</h1>
+              <p className="text-gray-600 dark:text-gray-400">Grow your agency by inviting talented hosts</p>
+            </div>
           </div>
 
           {/* Invitation Link */}

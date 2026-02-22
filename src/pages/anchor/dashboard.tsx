@@ -1,32 +1,40 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  LayoutDashboard, 
-  DollarSign, 
-  TrendingUp, 
-  Settings, 
-  LogOut,
   Coins,
   Users,
-  Clock,
   Video,
   Star
 } from "lucide-react";
-
-const navItems = [
-  { label: "Dashboard", href: "/anchor/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Income", href: "/anchor/income", icon: <DollarSign className="w-4 h-4" /> },
-  { label: "Call Price", href: "/anchor/call-price", icon: <Settings className="w-4 h-4" /> },
-  { label: "Level", href: "/anchor/level", icon: <TrendingUp className="w-4 h-4" /> },
-  { label: "Withdraw", href: "/anchor/withdraw", icon: <DollarSign className="w-4 h-4" /> }
-];
+import { BarChart } from "@/components/charts/BarChart";
+import { AreaChart } from "@/components/charts/AreaChart";
 
 export default function AnchorDashboard() {
+  const earningsData = [
+    { day: "Mon", beans: 4500 },
+    { day: "Tue", beans: 6200 },
+    { day: "Wed", beans: 5100 },
+    { day: "Thu", beans: 7800 },
+    { day: "Fri", beans: 9200 },
+    { day: "Sat", beans: 12400 },
+    { day: "Sun", beans: 10500 },
+  ];
+
+  const sessionData = [
+    { day: "Mon", minutes: 120 },
+    { day: "Tue", minutes: 180 },
+    { day: "Wed", minutes: 150 },
+    { day: "Thu", minutes: 240 },
+    { day: "Fri", minutes: 300 },
+    { day: "Sat", minutes: 420 },
+    { day: "Sun", minutes: 360 },
+  ];
+
   return (
     <>
       <SEO title="Dashboard - Pukaarly Anchor" />
-      <DashboardLayout navItems={navItems} role="anchor">
+      <DashboardLayout role="anchor">
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Anchor Dashboard</h1>
@@ -80,83 +88,68 @@ export default function AnchorDashboard() {
             </Card>
           </div>
 
-          {/* Charts & Activity */}
-          <div className="grid lg:grid-cols-2 gap-6">
+          {/* Charts Section */}
+          <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Recent Sessions</CardTitle>
+                <CardTitle>Weekly Earnings</CardTitle>
+                <CardDescription>Beans earned over the last 7 days</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { user: "John Doe", duration: "45 min", earned: "450 beans", time: "2 hours ago" },
-                    { user: "Alice Smith", duration: "30 min", earned: "300 beans", time: "5 hours ago" },
-                    { user: "Bob Johnson", duration: "60 min", earned: "600 beans", time: "1 day ago" },
-                    { user: "Carol White", duration: "25 min", earned: "250 beans", time: "1 day ago" }
-                  ].map((session, i) => (
-                    <div key={i} className="flex items-center justify-between py-3 border-b last:border-0 border-gray-200 dark:border-gray-800">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white font-semibold">
-                          {session.user.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-medium">{session.user}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{session.duration} • {session.time}</p>
-                        </div>
-                      </div>
-                      <span className="font-semibold text-green-600">{session.earned}</span>
-                    </div>
-                  ))}
-                </div>
+                <BarChart
+                  data={earningsData}
+                  dataKeys={[{ key: "beans", color: "#9333ea", name: "Beans" }]}
+                  xAxisKey="day"
+                  height={300}
+                />
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Performance Overview</CardTitle>
+                <CardTitle>Session Trends</CardTitle>
+                <CardDescription>Daily call minutes</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-600 dark:text-gray-400">Session Completion Rate</span>
-                      <span className="font-semibold">98%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full" style={{ width: "98%" }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-600 dark:text-gray-400">Client Satisfaction</span>
-                      <span className="font-semibold">96%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full" style={{ width: "96%" }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-600 dark:text-gray-400">Response Time</span>
-                      <span className="font-semibold">94%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full" style={{ width: "94%" }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-600 dark:text-gray-400">Availability</span>
-                      <span className="font-semibold">92%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full" style={{ width: "92%" }} />
-                    </div>
-                  </div>
-                </div>
+                <AreaChart
+                  data={sessionData}
+                  dataKeys={[{ key: "minutes", color: "#db2777", name: "Minutes" }]}
+                  xAxisKey="day"
+                  height={300}
+                />
               </CardContent>
             </Card>
           </div>
+
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Sessions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { user: "John Doe", duration: "45 min", earned: "450 beans", time: "2 hours ago" },
+                  { user: "Alice Smith", duration: "30 min", earned: "300 beans", time: "5 hours ago" },
+                  { user: "Bob Johnson", duration: "60 min", earned: "600 beans", time: "1 day ago" },
+                  { user: "Carol White", duration: "25 min", earned: "250 beans", time: "1 day ago" }
+                ].map((session, i) => (
+                  <div key={i} className="flex items-center justify-between py-3 border-b last:border-0 border-gray-200 dark:border-gray-800">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white font-semibold">
+                        {session.user.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-medium">{session.user}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{session.duration} • {session.time}</p>
+                      </div>
+                    </div>
+                    <span className="font-semibold text-green-600">{session.earned}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     </>

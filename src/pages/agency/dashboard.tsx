@@ -1,30 +1,39 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  LayoutDashboard, 
   Users, 
   DollarSign, 
   TrendingUp, 
-  UserPlus,
   Coins,
   Star,
-  Award
+  UserPlus
 } from "lucide-react";
-
-const navItems = [
-  { label: "Dashboard", href: "/agency/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Anchors", href: "/agency/anchors", icon: <Users className="w-4 h-4" /> },
-  { label: "Commission", href: "/agency/commission", icon: <DollarSign className="w-4 h-4" /> },
-  { label: "Withdrawals", href: "/agency/withdrawals", icon: <TrendingUp className="w-4 h-4" /> },
-  { label: "Invite", href: "/agency/invite", icon: <UserPlus className="w-4 h-4" /> }
-];
+import { LineChart } from "@/components/charts/LineChart";
+import { BarChart } from "@/components/charts/BarChart";
 
 export default function AgencyDashboard() {
+  const commissionData = [
+    { month: "Jan", amount: 12400 },
+    { month: "Feb", amount: 15600 },
+    { month: "Mar", amount: 14200 },
+    { month: "Apr", amount: 18900 },
+    { month: "May", amount: 22400 },
+    { month: "Jun", amount: 25600 },
+  ];
+
+  const anchorPerformance = [
+    { name: "Sarah", beans: 4200 },
+    { name: "Emma", beans: 3800 },
+    { name: "Lisa", beans: 3200 },
+    { name: "Anna", beans: 2900 },
+    { name: "Jessica", beans: 2100 },
+  ];
+
   return (
     <>
       <SEO title="Dashboard - Pukaarly Agency" />
-      <DashboardLayout navItems={navItems} role="agency">
+      <DashboardLayout role="agency">
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Agency Dashboard</h1>
@@ -57,12 +66,12 @@ export default function AgencyDashboard() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">This Month</CardTitle>
+                <CardTitle className="text-sm font-medium">Monthly Growth</CardTitle>
                 <TrendingUp className="w-4 h-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">2,840</div>
-                <p className="text-xs text-green-600 mt-1">+18% from last month</p>
+                <div className="text-2xl font-bold">+18%</div>
+                <p className="text-xs text-green-600 mt-1">vs last month</p>
               </CardContent>
             </Card>
 
@@ -78,106 +87,68 @@ export default function AgencyDashboard() {
             </Card>
           </div>
 
-          {/* Top Performers */}
-          <div className="grid lg:grid-cols-2 gap-6">
+          {/* Charts Section */}
+          <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Top Performing Anchors</CardTitle>
+                <CardTitle>Commission Growth</CardTitle>
+                <CardDescription>Monthly commission earnings in beans</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { name: "Sarah K.", earnings: "4,230 beans", sessions: 156, rating: 4.9 },
-                    { name: "Emma L.", earnings: "3,840 beans", sessions: 142, rating: 4.8 },
-                    { name: "Lisa M.", earnings: "3,210 beans", sessions: 128, rating: 4.7 },
-                    { name: "Anna R.", earnings: "2,950 beans", sessions: 115, rating: 4.8 }
-                  ].map((anchor, i) => (
-                    <div key={i} className="flex items-center justify-between py-3 border-b last:border-0 border-gray-200 dark:border-gray-800">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-semibold">
-                          {anchor.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-medium">{anchor.name}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {anchor.sessions} sessions • ⭐ {anchor.rating}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="font-semibold text-green-600">{anchor.earnings}</span>
-                    </div>
-                  ))}
-                </div>
+                <LineChart
+                  data={commissionData}
+                  dataKeys={[{ key: "amount", color: "#10b981", name: "Commission" }]}
+                  xAxisKey="month"
+                  height={300}
+                />
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
+                <CardTitle>Top Anchors</CardTitle>
+                <CardDescription>Performance by beans earned this month</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { action: "New Anchor Joined", name: "Jessica P.", time: "2 hours ago", type: "join" },
-                    { action: "Commission Earned", name: "Sarah K.", time: "5 hours ago", type: "earning" },
-                    { action: "Withdrawal Approved", name: "You", time: "1 day ago", type: "withdrawal" },
-                    { action: "Commission Earned", name: "Emma L.", time: "1 day ago", type: "earning" }
-                  ].map((activity, i) => (
-                    <div key={i} className="flex items-center gap-3 py-3 border-b last:border-0 border-gray-200 dark:border-gray-800">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        activity.type === "join" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600" :
-                        activity.type === "earning" ? "bg-green-100 dark:bg-green-900/30 text-green-600" :
-                        "bg-purple-100 dark:bg-purple-900/30 text-purple-600"
-                      }`}>
-                        {activity.type === "join" && <UserPlus className="w-5 h-5" />}
-                        {activity.type === "earning" && <Coins className="w-5 h-5" />}
-                        {activity.type === "withdrawal" && <TrendingUp className="w-5 h-5" />}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{activity.action}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">{activity.name} • {activity.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <BarChart
+                  data={anchorPerformance}
+                  dataKeys={[{ key: "beans", color: "#3b82f6", name: "Beans" }]}
+                  xAxisKey="name"
+                  height={300}
+                />
               </CardContent>
             </Card>
           </div>
 
-          {/* Performance Overview */}
+          {/* Recent Activity */}
           <Card>
             <CardHeader>
-              <CardTitle>Performance Overview</CardTitle>
+              <CardTitle>Recent Activity</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600 dark:text-gray-400">Average Anchor Rating</span>
-                    <span className="font-semibold">4.7/5.0</span>
+                {[
+                  { action: "New Anchor Joined", name: "Jessica P.", time: "2 hours ago", type: "join" },
+                  { action: "Commission Earned", name: "Sarah K.", time: "5 hours ago", type: "earning" },
+                  { action: "Withdrawal Approved", name: "You", time: "1 day ago", type: "withdrawal" },
+                  { action: "Commission Earned", name: "Emma L.", time: "1 day ago", type: "earning" }
+                ].map((activity, i) => (
+                  <div key={i} className="flex items-center gap-3 py-3 border-b last:border-0 border-gray-200 dark:border-gray-800">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      activity.type === "join" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600" :
+                      activity.type === "earning" ? "bg-green-100 dark:bg-green-900/30 text-green-600" :
+                      "bg-purple-100 dark:bg-purple-900/30 text-purple-600"
+                    }`}>
+                      {activity.type === "join" && <UserPlus className="w-5 h-5" />}
+                      {activity.type === "earning" && <Coins className="w-5 h-5" />}
+                      {activity.type === "withdrawal" && <TrendingUp className="w-5 h-5" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{activity.action}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">{activity.name} • {activity.time}</p>
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-blue-600 to-cyan-600 h-2 rounded-full" style={{ width: "94%" }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600 dark:text-gray-400">Active Anchors</span>
-                    <span className="font-semibold">92%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-blue-600 to-cyan-600 h-2 rounded-full" style={{ width: "92%" }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600 dark:text-gray-400">Monthly Growth</span>
-                    <span className="font-semibold">18%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-blue-600 to-cyan-600 h-2 rounded-full" style={{ width: "18%" }} />
-                  </div>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>

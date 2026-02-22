@@ -1,6 +1,6 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { 
@@ -15,16 +15,6 @@ import {
   Search
 } from "lucide-react";
 
-const navItems = [
-  { label: "Dashboard", href: "/user/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Explore", href: "/user/explore", icon: <Compass className="w-4 h-4" /> },
-  { label: "Messages", href: "/user/messages", icon: <MessageSquare className="w-4 h-4" /> },
-  { label: "Wallet", href: "/user/wallet", icon: <Wallet className="w-4 h-4" /> },
-  { label: "Profile", href: "/user/profile", icon: <User className="w-4 h-4" /> },
-  { label: "Referrals", href: "/user/referrals", icon: <Users className="w-4 h-4" /> },
-  { label: "Withdraw", href: "/user/withdraw", icon: <DollarSign className="w-4 h-4" /> }
-];
-
 const conversations = [
   { name: "Sarah Smith", lastMessage: "Thanks for the session!", time: "2m ago", unread: 2, online: true },
   { name: "Mike Johnson", lastMessage: "See you tomorrow!", time: "1h ago", unread: 0, online: false },
@@ -34,12 +24,14 @@ const conversations = [
 export default function UserMessages() {
   return (
     <>
-      <SEO title="Messages - Pukaarly User" />
-      <DashboardLayout navItems={navItems} role="user">
+      <SEO title="Messages - Pukaarly" />
+      <DashboardLayout role="user">
         <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Messages</h1>
-            <p className="text-gray-600 dark:text-gray-400">Chat with your favorite anchors</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Messages</h1>
+              <p className="text-gray-600 dark:text-gray-400">Chat with your favorite anchors</p>
+            </div>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-6">

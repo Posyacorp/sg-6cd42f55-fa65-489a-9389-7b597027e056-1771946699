@@ -5,33 +5,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { exportToCSV } from "@/lib/export";
 import { 
-  LayoutDashboard, 
-  DollarSign, 
-  TrendingUp, 
-  Settings,
+  DollarSign,
   ArrowRight,
   Clock,
   CheckCircle,
   XCircle,
-  Coins
+  Download
 } from "lucide-react";
 
-const navItems = [
-  { label: "Dashboard", href: "/anchor/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Income", href: "/anchor/income", icon: <DollarSign className="w-4 h-4" /> },
-  { label: "Call Price", href: "/anchor/call-price", icon: <Settings className="w-4 h-4" /> },
-  { label: "Level", href: "/anchor/level", icon: <TrendingUp className="w-4 h-4" /> },
-  { label: "Withdraw", href: "/anchor/withdraw", icon: <DollarSign className="w-4 h-4" /> }
-];
-
 export default function AnchorWithdraw() {
+  const withdrawals = [
+    { amount: "2,500", value: "$2,500", method: "Bank Transfer", date: "Feb 15, 2026", status: "completed" },
+    { amount: "1,800", value: "$1,800", method: "PayPal", date: "Feb 8, 2026", status: "completed" },
+    { amount: "1,200", value: "$1,200", method: "Crypto", date: "Feb 1, 2026", status: "pending" },
+    { amount: "950", value: "$950", method: "Bank Transfer", date: "Jan 25, 2026", status: "rejected" }
+  ];
+
+  const handleExport = () => {
+    exportToCSV(withdrawals, "anchor_withdrawals");
+  };
+
   return (
     <>
-      <SEO title="Withdraw - Pukaarly Anchor" />
-      <DashboardLayout navItems={navItems} role="anchor">
-        <div className="space-y-6 max-w-4xl">
-          <div>
+      <SEO title="Withdraw - Pukaarly" />
+      <DashboardLayout role="anchor">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">Withdraw Earnings</h1>
             <p className="text-gray-600 dark:text-gray-400">Request withdrawal of your beans</p>
           </div>
@@ -40,12 +41,12 @@ export default function AnchorWithdraw() {
           <div className="grid md:grid-cols-2 gap-6">
             <Card className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
               <CardHeader>
-                <CardTitle>Available Balance</CardTitle>
+                <CardTitle>Available Beans</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-bold mb-2">45,230</div>
-                <p className="text-purple-100">Beans Earned</p>
-                <p className="text-sm text-purple-100 mt-2">≈ $1,130.75 USD</p>
+                <div className="text-4xl font-bold mb-2">8,450</div>
+                <p className="text-purple-100">Beans Balance</p>
+                <p className="text-sm text-purple-100 mt-2">≈ $8,450 USD</p>
               </CardContent>
             </Card>
 
@@ -56,15 +57,15 @@ export default function AnchorWithdraw() {
               <CardContent className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Minimum</span>
-                  <span className="font-semibold">10,000 beans</span>
+                  <span className="font-semibold">500 beans</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Processing</span>
-                  <span className="font-semibold">2-5 business days</span>
+                  <span className="font-semibold">1-3 business days</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Fee</span>
-                  <span className="font-semibold">3%</span>
+                  <span className="font-semibold">2%</span>
                 </div>
               </CardContent>
             </Card>
@@ -83,11 +84,11 @@ export default function AnchorWithdraw() {
                     id="amount" 
                     type="number" 
                     placeholder="Enter amount" 
-                    min="10000"
-                    max="45230"
+                    min="500"
+                    max="8450"
                   />
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Minimum: 10,000 beans
+                    Minimum: 500 beans
                   </p>
                 </div>
 
@@ -100,7 +101,6 @@ export default function AnchorWithdraw() {
                     <option>Bank Transfer</option>
                     <option>PayPal</option>
                     <option>Crypto (USDT)</option>
-                    <option>Wise</option>
                   </select>
                 </div>
 
@@ -115,7 +115,7 @@ export default function AnchorWithdraw() {
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                   <p className="text-sm text-yellow-800 dark:text-yellow-200">
                     <strong>Note:</strong> Withdrawals are processed manually and require admin approval. 
-                    Processing time is typically 2-5 business days. A 3% processing fee will be deducted.
+                    Processing time is typically 1-3 business days.
                   </p>
                 </div>
 
@@ -130,16 +130,17 @@ export default function AnchorWithdraw() {
           {/* Withdrawal History */}
           <Card>
             <CardHeader>
-              <CardTitle>Withdrawal History</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Withdrawal History</CardTitle>
+                <Button onClick={handleExport} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[
-                  { amount: "20,000", value: "$500", method: "Bank Transfer", date: "Feb 18, 2026", status: "completed" },
-                  { amount: "15,000", value: "$375", method: "PayPal", date: "Feb 10, 2026", status: "completed" },
-                  { amount: "10,000", value: "$250", method: "Crypto", date: "Feb 3, 2026", status: "pending" },
-                  { amount: "12,000", value: "$300", method: "Bank Transfer", date: "Jan 28, 2026", status: "rejected" }
-                ].map((withdrawal, i) => (
+                {withdrawals.map((withdrawal, i) => (
                   <div key={i} className="flex items-center justify-between py-4 border-b last:border-0 border-gray-200 dark:border-gray-800">
                     <div>
                       <p className="font-semibold">{withdrawal.amount} beans</p>

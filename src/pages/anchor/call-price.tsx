@@ -1,6 +1,6 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,20 +13,12 @@ import {
   Info
 } from "lucide-react";
 
-const navItems = [
-  { label: "Dashboard", href: "/anchor/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Income", href: "/anchor/income", icon: <DollarSign className="w-4 h-4" /> },
-  { label: "Call Price", href: "/anchor/call-price", icon: <Settings className="w-4 h-4" /> },
-  { label: "Level", href: "/anchor/level", icon: <TrendingUp className="w-4 h-4" /> },
-  { label: "Withdraw", href: "/anchor/withdraw", icon: <DollarSign className="w-4 h-4" /> }
-];
-
 export default function AnchorCallPrice() {
   return (
     <>
-      <SEO title="Call Price Settings - Pukaarly Anchor" />
-      <DashboardLayout navItems={navItems} role="anchor">
-        <div className="space-y-6 max-w-4xl">
+      <SEO title="Call Price - Pukaarly Anchor" />
+      <DashboardLayout role="anchor">
+        <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Call Price Settings</h1>
             <p className="text-gray-600 dark:text-gray-400">Configure your session pricing</p>

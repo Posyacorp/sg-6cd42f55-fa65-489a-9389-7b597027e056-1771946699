@@ -1,238 +1,152 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { 
-  LayoutDashboard, 
-  Users, 
-  UserCheck, 
-  Building2, 
   DollarSign, 
-  Gift, 
-  TrendingDown, 
-  Vault, 
-  Settings,
-  TrendingUp,
+  TrendingUp, 
+  RefreshCcw,
   Coins,
-  Wallet
+  Activity
 } from "lucide-react";
-
-const navItems = [
-  { label: "Dashboard", href: "/admin/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Users", href: "/admin/users", icon: <Users className="w-4 h-4" /> },
-  { label: "Anchors", href: "/admin/anchors", icon: <UserCheck className="w-4 h-4" /> },
-  { label: "Agencies", href: "/admin/agencies", icon: <Building2 className="w-4 h-4" /> },
-  { label: "Economy", href: "/admin/economy", icon: <DollarSign className="w-4 h-4" /> },
-  { label: "Gifts", href: "/admin/gifts", icon: <Gift className="w-4 h-4" /> },
-  { label: "Withdrawals", href: "/admin/withdrawals", icon: <TrendingDown className="w-4 h-4" /> },
-  { label: "Treasury", href: "/admin/treasury", icon: <Vault className="w-4 h-4" /> },
-  { label: "Settings", href: "/admin/settings", icon: <Settings className="w-4 h-4" /> }
-];
+import { ComparisonChart } from "@/components/charts/ComparisonChart";
+import { InteractiveAreaChart } from "@/components/charts/InteractiveAreaChart";
 
 export default function AdminEconomy() {
+  const economicMetrics = [
+    { name: "Week 1", tokenPrice: 0.98, volume: 35000, marketCap: 11180000 },
+    { name: "Week 2", tokenPrice: 1.02, volume: 38500, marketCap: 11628000 },
+    { name: "Week 3", tokenPrice: 1.01, volume: 41200, marketCap: 11514000 },
+    { name: "Week 4", tokenPrice: 1.05, volume: 43800, marketCap: 11970000 },
+    { name: "Week 5", tokenPrice: 1.08, volume: 46100, marketCap: 12312000 },
+    { name: "Week 6", tokenPrice: 1.12, volume: 48900, marketCap: 12768000 },
+    { name: "Week 7", tokenPrice: 1.10, volume: 45200, marketCap: 12540000 },
+  ];
+
+  const tokenCirculation = [
+    { name: "Jan", circulation: 8500000 },
+    { name: "Feb", circulation: 9200000 },
+    { name: "Mar", circulation: 9800000 },
+    { name: "Apr", circulation: 10400000 },
+    { name: "May", circulation: 10900000 },
+    { name: "Jun", circulation: 11400000 },
+  ];
+
+  const comparisonMetrics = [
+    { key: "tokenPrice", label: "Token Price ($)", color: "#16a34a" },
+    { key: "volume", label: "Daily Volume ($)", color: "#2563eb" },
+    { key: "marketCap", label: "Market Cap ($M)", color: "#9333ea" },
+  ];
+
   return (
     <>
-      <SEO title="Economy Management - Pukaarly Admin" />
-      <DashboardLayout navItems={navItems} role="admin">
+      <SEO title="Economy - Pukaarly Admin" />
+      <DashboardLayout role="admin">
         <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Economy Management</h1>
-            <p className="text-gray-600 dark:text-gray-400">Platform economy and token distribution</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Economy & Tokens</h1>
+              <p className="text-gray-600 dark:text-gray-400">Manage platform currency and rewards</p>
+            </div>
+            <Button>
+              <RefreshCcw className="w-4 h-4 mr-2" />
+              Adjust Rates
+            </Button>
           </div>
 
-          {/* Key Metrics */}
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Token Price</CardTitle>
+                <DollarSign className="w-4 h-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$284,340</div>
-                <p className="text-xs text-green-600 mt-1">+12.5% vs last month</p>
+                <div className="text-2xl font-bold">$1.10</div>
+                <p className="text-xs text-green-600 mt-1">+2.4% today</p>
               </CardContent>
             </Card>
+
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Tokens Minted</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Daily Volume</CardTitle>
+                <Activity className="w-4 h-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$45,230</div>
+                <p className="text-xs text-gray-500 mt-1">24h volume</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Total Supply</CardTitle>
+                <Coins className="w-4 h-4 text-yellow-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">11.4M</div>
-                <p className="text-xs text-gray-500 mt-1">Total supply</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Coins in Circulation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">8.7M</div>
-                <p className="text-xs text-gray-500 mt-1">Active coins</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Beans Earned</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">5.2M</div>
-                <p className="text-xs text-gray-500 mt-1">Total beans</p>
+                <p className="text-xs text-gray-500 mt-1">Tokens in circulation</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Token Distribution */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Token Distribution Model</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600 dark:text-gray-400">Anchor (50%)</span>
-                    <span className="font-semibold">5.7M tokens</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                    <div className="bg-purple-600 h-3 rounded-full" style={{ width: "50%" }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600 dark:text-gray-400">User (20%)</span>
-                    <span className="font-semibold">2.3M tokens</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                    <div className="bg-blue-600 h-3 rounded-full" style={{ width: "20%" }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600 dark:text-gray-400">Admin (10%)</span>
-                    <span className="font-semibold">1.1M tokens</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                    <div className="bg-green-600 h-3 rounded-full" style={{ width: "10%" }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600 dark:text-gray-400">Agency (10%)</span>
-                    <span className="font-semibold">1.1M tokens</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                    <div className="bg-cyan-600 h-3 rounded-full" style={{ width: "10%" }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600 dark:text-gray-400">Referral Pool (10%)</span>
-                    <span className="font-semibold">1.1M tokens</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                    <div className="bg-orange-600 h-3 rounded-full" style={{ width: "10%" }} />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Comparison Chart - Multiple Metrics */}
+          <ComparisonChart
+            title="Economic Metrics Comparison"
+            data={economicMetrics}
+            metrics={comparisonMetrics}
+            periodOptions={[
+              { value: "7", label: "Last 7 Days" },
+              { value: "30", label: "Last 30 Days" },
+              { value: "90", label: "Last 90 Days" }
+            ]}
+          />
 
-          {/* Pricing Configuration */}
-          <div className="grid lg:grid-cols-2 gap-6">
+          {/* Interactive Area Chart with Range Selector */}
+          <InteractiveAreaChart
+            title="Token Circulation Over Time"
+            data={tokenCirculation}
+            dataKey="circulation"
+            color="#8b5cf6"
+            gradientId="colorCirculation"
+          />
+
+          <div className="grid gap-6 lg:grid-cols-1">
             <Card>
               <CardHeader>
-                <CardTitle>Coin Packages</CardTitle>
+                <CardTitle>Minting Rules</CardTitle>
+                <CardDescription>Current reward distribution</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {[
-                    { coins: "100 Coins", price: "$0.99", tokens: "40 tokens" },
-                    { coins: "500 Coins", price: "$4.99", tokens: "200 tokens" },
-                    { coins: "1000 Coins", price: "$9.99", tokens: "400 tokens" },
-                    { coins: "5000 Coins", price: "$49.99", tokens: "2000 tokens" }
-                  ].map((pkg, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-800 rounded-lg">
-                      <div>
-                        <p className="font-semibold">{pkg.coins}</p>
-                        <p className="text-xs text-gray-500">+ {pkg.tokens} reward</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-green-600">{pkg.price}</p>
-                        <Button variant="ghost" size="sm" className="h-6 text-xs">Edit</Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Conversion Rates</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Coins → Beans</span>
-                      <Button variant="ghost" size="sm" className="h-6 text-xs">Edit</Button>
-                    </div>
-                    <p className="text-2xl font-bold">1:1</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Direct conversion</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="flex flex-col p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Anchor Share</span>
+                    <span className="text-2xl font-bold text-purple-600 mt-2">50%</span>
+                    <span className="text-xs text-gray-500 mt-1">20 tokens per $1</span>
                   </div>
-                  <div className="p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Beans → USD</span>
-                      <Button variant="ghost" size="sm" className="h-6 text-xs">Edit</Button>
-                    </div>
-                    <p className="text-2xl font-bold">100:1</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">100 beans = $1</p>
+                  <div className="flex flex-col p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">User Rewards</span>
+                    <span className="text-2xl font-bold text-blue-600 mt-2">20%</span>
+                    <span className="text-xs text-gray-500 mt-1">8 tokens per $1</span>
                   </div>
-                  <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Token Reward Rate</span>
-                      <Button variant="ghost" size="sm" className="h-6 text-xs">Edit</Button>
-                    </div>
-                    <p className="text-2xl font-bold">40:1</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">40 tokens per $1 spent</p>
+                  <div className="flex flex-col p-4 bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20 rounded-lg border border-pink-200 dark:border-pink-800">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Agency Commission</span>
+                    <span className="text-2xl font-bold text-pink-600 mt-2">10%</span>
+                    <span className="text-xs text-gray-500 mt-1">4 tokens per $1</span>
+                  </div>
+                  <div className="flex flex-col p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Referral Pool</span>
+                    <span className="text-2xl font-bold text-orange-600 mt-2">10%</span>
+                    <span className="text-xs text-gray-500 mt-1">4 tokens per $1</span>
+                  </div>
+                  <div className="flex flex-col p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-800">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Admin Fee</span>
+                    <span className="text-2xl font-bold text-green-600 mt-2">10%</span>
+                    <span className="text-xs text-gray-500 mt-1">4 tokens per $1</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-
-          {/* Recent Transactions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Large Transactions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {[
-                  { user: "John D.", type: "Coin Purchase", amount: "$49.99", coins: "5000", time: "2 min ago" },
-                  { user: "Sarah K.", type: "Gift Sent", amount: "1000 coins", coins: "-1000", time: "15 min ago" },
-                  { user: "Mike R.", type: "Coin Purchase", amount: "$9.99", coins: "1000", time: "1 hour ago" },
-                  { user: "Emma L.", type: "Beans Withdrawal", amount: "$150", coins: "15000", time: "2 hours ago" }
-                ].map((tx, i) => (
-                  <div key={i} className="flex items-center justify-between py-3 border-b last:border-0 border-gray-200 dark:border-gray-800">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-semibold">
-                        {tx.user.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-medium">{tx.user}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{tx.type}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">{tx.amount}</p>
-                      <p className="text-xs text-gray-500">{tx.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </DashboardLayout>
     </>

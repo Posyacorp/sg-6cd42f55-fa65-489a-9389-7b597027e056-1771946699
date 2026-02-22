@@ -1,6 +1,6 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,16 +17,6 @@ import {
   Video
 } from "lucide-react";
 
-const navItems = [
-  { label: "Dashboard", href: "/user/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Explore", href: "/user/explore", icon: <Compass className="w-4 h-4" /> },
-  { label: "Messages", href: "/user/messages", icon: <MessageSquare className="w-4 h-4" /> },
-  { label: "Wallet", href: "/user/wallet", icon: <Wallet className="w-4 h-4" /> },
-  { label: "Profile", href: "/user/profile", icon: <User className="w-4 h-4" /> },
-  { label: "Referrals", href: "/user/referrals", icon: <Users className="w-4 h-4" /> },
-  { label: "Withdraw", href: "/user/withdraw", icon: <DollarSign className="w-4 h-4" /> }
-];
-
 const anchors = [
   { name: "Sarah Smith", level: 5, rate: 50, status: "online", rating: 4.8, sessions: 234 },
   { name: "Mike Johnson", level: 4, rate: 40, status: "online", rating: 4.9, sessions: 189 },
@@ -39,10 +29,10 @@ const anchors = [
 export default function UserExplore() {
   return (
     <>
-      <SEO title="Explore Anchors - Pukaarly User" />
-      <DashboardLayout navItems={navItems} role="user">
+      <SEO title="Explore - Pukaarly" />
+      <DashboardLayout role="user">
         <div className="space-y-6">
-          <div>
+          <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">Explore Anchors</h1>
             <p className="text-gray-600 dark:text-gray-400">Discover and connect with talented hosts</p>
           </div>

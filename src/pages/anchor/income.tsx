@@ -1,141 +1,190 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { LineChart } from "@/components/charts/LineChart";
+import { BarChart } from "@/components/charts/BarChart";
+import { exportToCSV } from "@/lib/export";
 import { 
-  LayoutDashboard, 
-  DollarSign, 
-  TrendingUp, 
-  Settings,
-  Coins,
-  ArrowUpRight,
-  Gift,
+  DollarSign,
+  TrendingUp,
   Users,
-  Calendar
+  Clock,
+  Download
 } from "lucide-react";
 
-const navItems = [
-  { label: "Dashboard", href: "/anchor/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Income", href: "/anchor/income", icon: <DollarSign className="w-4 h-4" /> },
-  { label: "Call Price", href: "/anchor/call-price", icon: <Settings className="w-4 h-4" /> },
-  { label: "Level", href: "/anchor/level", icon: <TrendingUp className="w-4 h-4" /> },
-  { label: "Withdraw", href: "/anchor/withdraw", icon: <DollarSign className="w-4 h-4" /> }
-];
-
 export default function AnchorIncome() {
+  const earningsData = [
+    { month: "Jan", gifts: 1200, calls: 800, bonus: 200 },
+    { month: "Feb", gifts: 1800, calls: 1200, bonus: 300 },
+    { month: "Mar", gifts: 1600, calls: 1000, bonus: 250 },
+    { month: "Apr", gifts: 2200, calls: 1400, bonus: 400 },
+    { month: "May", gifts: 2800, calls: 1800, bonus: 500 },
+    { month: "Jun", gifts: 3200, calls: 2000, bonus: 600 }
+  ];
+
+  const incomeBreakdown = [
+    { source: "Video Calls", amount: "$2,450", percentage: "45%", trend: "+12%" },
+    { source: "Virtual Gifts", amount: "$1,890", percentage: "35%", trend: "+8%" },
+    { source: "Premium Chat", amount: "$780", percentage: "15%", trend: "+5%" },
+    { source: "Bonuses", amount: "$270", percentage: "5%", trend: "+15%" }
+  ];
+
+  const recentEarnings = [
+    { date: "2026-02-21", user: "User_4523", type: "Video Call", amount: "$45", duration: "30 min" },
+    { date: "2026-02-21", user: "User_8912", type: "Gift", amount: "$25", gift: "Diamond Ring" },
+    { date: "2026-02-20", user: "User_3421", type: "Video Call", amount: "$60", duration: "40 min" },
+    { date: "2026-02-20", user: "User_7634", type: "Premium Chat", amount: "$15", duration: "15 min" },
+    { date: "2026-02-19", user: "User_2109", type: "Gift", amount: "$50", gift: "Luxury Car" }
+  ];
+
+  const handleExportBreakdown = () => {
+    exportToCSV(incomeBreakdown, "income_breakdown");
+  };
+
+  const handleExportEarnings = () => {
+    exportToCSV(recentEarnings, "recent_earnings");
+  };
+
   return (
     <>
-      <SEO title="Income - Pukaarly Anchor" />
-      <DashboardLayout navItems={navItems} role="anchor">
+      <SEO title="Income - Pukaarly" />
+      <DashboardLayout role="anchor">
         <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Income Overview</h1>
-            <p className="text-gray-600 dark:text-gray-400">Track your earnings and revenue streams</p>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">Income Details</h1>
+            <p className="text-gray-600 dark:text-gray-400">Track your earnings and performance</p>
           </div>
 
-          {/* Income Stats */}
+          {/* Stats Overview */}
           <div className="grid md:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total Beans</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">45,230</div>
-                <p className="text-xs text-gray-500 mt-1">Lifetime earnings</p>
+                <div className="text-3xl font-bold">$5,390</div>
+                <p className="text-xs text-green-600 mt-1">+18% from last month</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">This Month</CardTitle>
+                <CardTitle className="text-sm font-medium">Video Calls</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">8,450</div>
-                <p className="text-xs text-green-600 mt-1">+12% from last month</p>
+                <div className="text-3xl font-bold">142</div>
+                <p className="text-xs text-gray-500 mt-1">This month</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">This Week</CardTitle>
+                <CardTitle className="text-sm font-medium">Avg. Call Duration</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">2,340</div>
-                <p className="text-xs text-gray-500 mt-1">7 days</p>
+                <div className="text-3xl font-bold">28m</div>
+                <p className="text-xs text-gray-500 mt-1">Average time</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Today</CardTitle>
+                <CardTitle className="text-sm font-medium">Gifts Received</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">450</div>
-                <p className="text-xs text-gray-500 mt-1">Current session</p>
+                <div className="text-3xl font-bold">89</div>
+                <p className="text-xs text-gray-500 mt-1">Total gifts</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Revenue Breakdown */}
+          {/* Earnings Trend */}
           <Card>
             <CardHeader>
-              <CardTitle>Revenue Breakdown</CardTitle>
+              <CardTitle>Earnings Trend (6 Months)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Coins className="w-5 h-5 text-purple-600" />
-                    <span className="font-semibold">Session Revenue</span>
+              <BarChart 
+                data={earningsData}
+                dataKeys={[
+                  { key: "gifts", color: "#8b5cf6", name: "Gifts" },
+                  { key: "calls", color: "#3b82f6", name: "Calls" },
+                  { key: "bonus", color: "#10b981", name: "Bonus" }
+                ]}
+                xAxisKey="month"
+                height={300}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Income Breakdown */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Income Sources</CardTitle>
+                <Button onClick={handleExportBreakdown} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {incomeBreakdown.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between py-4 border-b last:border-0 border-gray-200 dark:border-gray-800">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-semibold">
+                        <DollarSign className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">{item.source}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{item.percentage} of total</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-bold">{item.amount}</p>
+                      <Badge variant="secondary" className="text-green-600">
+                        <TrendingUp className="w-3 h-3 mr-1" />
+                        {item.trend}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="text-2xl font-bold">32,450 beans</div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">From 234 sessions</p>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Gift className="w-5 h-5 text-pink-600" />
-                    <span className="font-semibold">Gift Revenue</span>
-                  </div>
-                  <div className="text-2xl font-bold">10,780 beans</div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">From 156 gifts</p>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-green-600" />
-                    <span className="font-semibold">Bonus</span>
-                  </div>
-                  <div className="text-2xl font-bold">2,000 beans</div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Performance rewards</p>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>
 
-          {/* Earnings History */}
+          {/* Recent Earnings */}
           <Card>
             <CardHeader>
-              <CardTitle>Earnings History</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Recent Earnings</CardTitle>
+                <Button onClick={handleExportEarnings} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[
-                  { type: "Session", user: "John Doe", amount: "450 beans", date: "Today, 10:30 AM", icon: <Coins className="w-4 h-4" /> },
-                  { type: "Gift Received", user: "Alice Smith", amount: "200 beans", date: "Today, 09:15 AM", icon: <Gift className="w-4 h-4" /> },
-                  { type: "Session", user: "Bob Johnson", amount: "600 beans", date: "Yesterday, 08:45 PM", icon: <Coins className="w-4 h-4" /> },
-                  { type: "Gift Received", user: "Carol White", amount: "150 beans", date: "Yesterday, 03:20 PM", icon: <Gift className="w-4 h-4" /> },
-                  { type: "Session", user: "David Brown", amount: "300 beans", date: "2 days ago", icon: <Coins className="w-4 h-4" /> }
-                ].map((earning, i) => (
-                  <div key={i} className="flex items-center justify-between py-4 border-b last:border-0 border-gray-200 dark:border-gray-800">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600">
-                        {earning.icon}
-                      </div>
-                      <div>
-                        <p className="font-medium">{earning.type}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {earning.user} • {earning.date}
+                {recentEarnings.map((earning, i) => (
+                  <div key={i} className="flex items-center justify-between py-3 border-b last:border-0 border-gray-200 dark:border-gray-800">
+                    <div>
+                      <p className="font-medium">{earning.type}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {earning.user} • {earning.date}
+                      </p>
+                      {earning.duration && (
+                        <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                          <Clock className="w-3 h-3" />
+                          {earning.duration}
                         </p>
-                      </div>
+                      )}
+                      {earning.gift && (
+                        <p className="text-xs text-purple-600 mt-1">{earning.gift}</p>
+                      )}
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-green-600">+{earning.amount}</p>
+                      <p className="font-semibold text-green-600">{earning.amount}</p>
                     </div>
                   </div>
                 ))}

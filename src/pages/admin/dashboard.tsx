@@ -1,37 +1,86 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  LayoutDashboard, 
   Users, 
   UserCheck, 
-  Building2, 
   DollarSign, 
-  Gift, 
-  TrendingDown, 
-  Vault, 
-  Settings,
-  TrendingUp,
   Activity
 } from "lucide-react";
-
-const navItems = [
-  { label: "Dashboard", href: "/admin/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Users", href: "/admin/users", icon: <Users className="w-4 h-4" /> },
-  { label: "Anchors", href: "/admin/anchors", icon: <UserCheck className="w-4 h-4" /> },
-  { label: "Agencies", href: "/admin/agencies", icon: <Building2 className="w-4 h-4" /> },
-  { label: "Economy", href: "/admin/economy", icon: <DollarSign className="w-4 h-4" /> },
-  { label: "Gifts", href: "/admin/gifts", icon: <Gift className="w-4 h-4" /> },
-  { label: "Withdrawals", href: "/admin/withdrawals", icon: <TrendingDown className="w-4 h-4" /> },
-  { label: "Treasury", href: "/admin/treasury", icon: <Vault className="w-4 h-4" /> },
-  { label: "Settings", href: "/admin/settings", icon: <Settings className="w-4 h-4" /> }
-];
+import { AreaChart } from "@/components/charts/AreaChart";
+import { BarChart } from "@/components/charts/BarChart";
+import { PieChart } from "@/components/charts/PieChart";
+import { DrillDownChart } from "@/components/charts/DrillDownChart";
 
 export default function AdminDashboard() {
+  const revenueData = [
+    { month: "Jan", revenue: 180000 },
+    { month: "Feb", revenue: 220000 },
+    { month: "Mar", revenue: 200000 },
+    { month: "Apr", revenue: 250000 },
+    { month: "May", revenue: 284000 },
+    { month: "Jun", revenue: 310000 },
+  ];
+
+  const userGrowth = [
+    { month: "Jan", users: 8500 },
+    { month: "Feb", users: 9200 },
+    { month: "Mar", users: 10100 },
+    { month: "Apr", users: 11200 },
+    { month: "May", users: 12400 },
+    { month: "Jun", users: 13800 },
+  ];
+
+  const tokenDistribution = [
+    { name: "Users", value: 45 },
+    { name: "Anchors", value: 30 },
+    { name: "Reserve", value: 15 },
+    { name: "Team", value: 10 },
+  ];
+
+  const revenueDrillDown = [
+    {
+      name: "Video Calls",
+      value: 125000,
+      drillDown: [
+        { name: "1-on-1 Calls", value: 75000 },
+        { name: "Group Calls", value: 35000 },
+        { name: "Premium Calls", value: 15000 },
+      ]
+    },
+    {
+      name: "Gifts",
+      value: 95000,
+      drillDown: [
+        { name: "Roses", value: 45000 },
+        { name: "Hearts", value: 30000 },
+        { name: "Diamonds", value: 20000 },
+      ]
+    },
+    {
+      name: "Subscriptions",
+      value: 55000,
+      drillDown: [
+        { name: "Basic", value: 25000 },
+        { name: "Premium", value: 20000 },
+        { name: "VIP", value: 10000 },
+      ]
+    },
+    {
+      name: "Other",
+      value: 35000,
+      drillDown: [
+        { name: "Profile Boosts", value: 15000 },
+        { name: "Stickers", value: 12000 },
+        { name: "Badges", value: 8000 },
+      ]
+    },
+  ];
+
   return (
     <>
       <SEO title="Admin Dashboard - Pukaarly" />
-      <DashboardLayout navItems={navItems} role="admin">
+      <DashboardLayout role="admin">
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
@@ -85,52 +134,67 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          {/* Revenue Chart Placeholder */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <p className="text-gray-500">Revenue chart visualization would go here</p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Drill-Down Chart - Revenue by Category */}
+          <DrillDownChart
+            title="Revenue by Category"
+            data={revenueDrillDown}
+            dataKey="value"
+            colors={["#8b5cf6", "#06b6d4", "#10b981", "#f97316"]}
+          />
 
-          {/* Recent Activity */}
-          <div className="grid lg:grid-cols-2 gap-6">
+          {/* Charts Section */}
+          <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Recent Registrations</CardTitle>
+                <CardTitle>Revenue Overview</CardTitle>
+                <CardDescription>Monthly platform revenue</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { name: "John D.", type: "User", time: "5 min ago" },
-                    { name: "Sarah K.", type: "Anchor", time: "15 min ago" },
-                    { name: "Elite Agency", type: "Agency", time: "1 hour ago" },
-                    { name: "Mike R.", type: "User", time: "2 hours ago" }
-                  ].map((activity, i) => (
-                    <div key={i} className="flex items-center justify-between py-3 border-b last:border-0 border-gray-200 dark:border-gray-800">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-semibold">
-                          {activity.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-medium">{activity.name}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{activity.type}</p>
-                        </div>
-                      </div>
-                      <span className="text-xs text-gray-500">{activity.time}</span>
-                    </div>
-                  ))}
-                </div>
+                <AreaChart
+                  data={revenueData}
+                  dataKeys={[{ key: "revenue", color: "#16a34a", name: "Revenue ($)" }]}
+                  xAxisKey="month"
+                  height={300}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>User Growth</CardTitle>
+                <CardDescription>Total registered users trend</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BarChart
+                  data={userGrowth}
+                  dataKeys={[{ key: "users", color: "#2563eb", name: "Users" }]}
+                  xAxisKey="month"
+                  height={300}
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Token Distribution</CardTitle>
+                <CardDescription>Current supply allocation</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PieChart
+                  data={tokenDistribution}
+                  colors={["#3b82f6", "#9333ea", "#10b981", "#f97316"]}
+                  height={300}
+                  innerRadius={60}
+                />
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
                 <CardTitle>Pending Approvals</CardTitle>
+                <CardDescription>Actions requiring admin attention</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -154,44 +218,6 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Platform Health */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Platform Health</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600 dark:text-gray-400">Active Sessions</span>
-                    <span className="font-semibold">847/1000</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-blue-600 to-cyan-600 h-2 rounded-full" style={{ width: "85%" }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600 dark:text-gray-400">Server Capacity</span>
-                    <span className="font-semibold">62%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-blue-600 to-cyan-600 h-2 rounded-full" style={{ width: "62%" }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600 dark:text-gray-400">Support Tickets</span>
-                    <span className="font-semibold">12 pending</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-blue-600 to-cyan-600 h-2 rounded-full" style={{ width: "35%" }} />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </DashboardLayout>
     </>

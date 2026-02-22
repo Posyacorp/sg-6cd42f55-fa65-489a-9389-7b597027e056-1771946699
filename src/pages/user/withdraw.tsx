@@ -1,10 +1,11 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { exportToCSV } from "@/lib/export";
 import { 
   LayoutDashboard, 
   Compass, 
@@ -16,26 +17,28 @@ import {
   ArrowRight,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  Download
 } from "lucide-react";
 
-const navItems = [
-  { label: "Dashboard", href: "/user/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-  { label: "Explore", href: "/user/explore", icon: <Compass className="w-4 h-4" /> },
-  { label: "Messages", href: "/user/messages", icon: <MessageSquare className="w-4 h-4" /> },
-  { label: "Wallet", href: "/user/wallet", icon: <Wallet className="w-4 h-4" /> },
-  { label: "Profile", href: "/user/profile", icon: <User className="w-4 h-4" /> },
-  { label: "Referrals", href: "/user/referrals", icon: <Users className="w-4 h-4" /> },
-  { label: "Withdraw", href: "/user/withdraw", icon: <DollarSign className="w-4 h-4" /> }
-];
-
 export default function UserWithdraw() {
+  const withdrawals = [
+    { amount: "10,000", value: "$250", method: "Bank Transfer", date: "Feb 15, 2026", status: "completed" },
+    { amount: "8,000", value: "$200", method: "PayPal", date: "Feb 8, 2026", status: "completed" },
+    { amount: "5,000", value: "$125", method: "Crypto", date: "Feb 1, 2026", status: "pending" },
+    { amount: "6,000", value: "$150", method: "Bank Transfer", date: "Jan 25, 2026", status: "rejected" }
+  ];
+
+  const handleExport = () => {
+    exportToCSV(withdrawals, "withdrawal_history");
+  };
+
   return (
     <>
-      <SEO title="Withdraw - Pukaarly User" />
-      <DashboardLayout navItems={navItems} role="user">
-        <div className="space-y-6 max-w-4xl">
-          <div>
+      <SEO title="Withdraw - Pukaarly" />
+      <DashboardLayout role="user">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">Withdraw Funds</h1>
             <p className="text-gray-600 dark:text-gray-400">Request withdrawal of your reward tokens</p>
           </div>
@@ -133,16 +136,17 @@ export default function UserWithdraw() {
           {/* Withdrawal History */}
           <Card>
             <CardHeader>
-              <CardTitle>Withdrawal History</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Withdrawal History</CardTitle>
+                <Button onClick={handleExport} variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[
-                  { amount: "10,000", value: "$250", method: "Bank Transfer", date: "Feb 15, 2026", status: "completed" },
-                  { amount: "8,000", value: "$200", method: "PayPal", date: "Feb 8, 2026", status: "completed" },
-                  { amount: "5,000", value: "$125", method: "Crypto", date: "Feb 1, 2026", status: "pending" },
-                  { amount: "6,000", value: "$150", method: "Bank Transfer", date: "Jan 25, 2026", status: "rejected" }
-                ].map((withdrawal, i) => (
+                {withdrawals.map((withdrawal, i) => (
                   <div key={i} className="flex items-center justify-between py-4 border-b last:border-0 border-gray-200 dark:border-gray-800">
                     <div>
                       <p className="font-semibold">{withdrawal.amount} tokens</p>
