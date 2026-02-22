@@ -161,6 +161,7 @@ export default function AgencyDashboard() {
             </CardHeader>
             <CardContent>
               <BarChart
+                title="Revenue Streams Breakdown"
                 data={revenueStreamsData}
                 dataKeys={[{ key: "value", color: "#3b82f6", name: "Amount" }]}
                 xAxisKey="name"

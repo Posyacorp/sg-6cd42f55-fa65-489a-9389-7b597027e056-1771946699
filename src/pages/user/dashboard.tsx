@@ -110,6 +110,7 @@ export default function UserDashboard() {
               </CardHeader>
               <CardContent>
                 <AreaChart
+                  title="Spending History"
                   data={spendingData}
                   dataKey="amount"
                   color="#8b5cf6"
@@ -126,6 +127,7 @@ export default function UserDashboard() {
               </CardHeader>
               <CardContent>
                 <LineChart
+                  title="Token Rewards Earned"
                   data={rewardsData}
                   dataKeys={[{ key: "tokens", color: "#ec4899", name: "Tokens" }]}
                   xAxisKey="month"

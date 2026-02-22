@@ -102,6 +102,7 @@ export default function AgencyCommission() {
             </CardHeader>
             <CardContent>
               <LineChart 
+                title="Commission Growth"
                 data={commissionData}
                 dataKeys={[
                   { key: "earned", color: "#10b981", name: "Earned" },

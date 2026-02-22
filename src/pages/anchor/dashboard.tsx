@@ -97,6 +97,7 @@ export default function AnchorDashboard() {
               </CardHeader>
               <CardContent>
                 <BarChart
+                  title="Weekly Earnings"
                   data={earningsData}
                   dataKeys={[{ key: "beans", color: "#9333ea", name: "Beans" }]}
                   xAxisKey="day"
@@ -112,6 +113,7 @@ export default function AnchorDashboard() {
               </CardHeader>
               <CardContent>
                 <AreaChart
+                  title="Session Trends"
                   data={sessionData}
                   dataKey="minutes"
                   color="#db2777"

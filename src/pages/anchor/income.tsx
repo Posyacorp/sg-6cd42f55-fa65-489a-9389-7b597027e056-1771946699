@@ -104,6 +104,7 @@ export default function AnchorIncome() {
             </CardHeader>
             <CardContent>
               <BarChart 
+                title="Earnings Trend"
                 data={earningsData}
                 dataKeys={[
                   { key: "gifts", color: "#8b5cf6", name: "Gifts" },
@@ -128,28 +129,17 @@ export default function AnchorIncome() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {incomeBreakdown.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between py-4 border-b last:border-0 border-gray-200 dark:border-gray-800">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-semibold">
-                        <DollarSign className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <p className="font-semibold">{item.source}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{item.percentage} of total</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xl font-bold">{item.amount}</p>
-                      <Badge variant="secondary" className="text-green-600">
-                        <TrendingUp className="w-3 h-3 mr-1" />
-                        {item.trend}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <BarChart
+                title="Income Breakdown"
+                data={earningsData}
+                dataKeys={[
+                  { key: "gifts", color: "#ec4899", name: "Gifts" },
+                  { key: "calls", color: "#8b5cf6", name: "Video Calls" },
+                  { key: "bonus", color: "#10b981", name: "Bonuses" }
+                ]}
+                xAxisKey="month"
+                height={300}
+              />
             </CardContent>
           </Card>
 

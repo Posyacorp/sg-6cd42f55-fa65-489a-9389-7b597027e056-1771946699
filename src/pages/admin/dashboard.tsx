@@ -151,6 +151,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <AreaChart
+                  title="Revenue Overview"
                   data={revenueData}
                   dataKey="revenue"
                   color="#16a34a"
@@ -167,6 +168,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <BarChart
+                  title="User Growth"
                   data={userGrowth}
                   dataKeys={[{ key: "users", color: "#2563eb", name: "Users" }]}
                   xAxisKey="month"
