@@ -750,27 +750,27 @@ export type Database = {
       }
       user_activity_logs: {
         Row: {
-          action_details: Json | null
-          action_type: string
+          activity_type: string
           created_at: string | null
+          details: Json | null
           id: string
           ip_address: string | null
           user_agent: string | null
           user_id: string
         }
         Insert: {
-          action_details?: Json | null
-          action_type: string
+          activity_type: string
           created_at?: string | null
+          details?: Json | null
           id?: string
           ip_address?: string | null
           user_agent?: string | null
           user_id: string
         }
         Update: {
-          action_details?: Json | null
-          action_type?: string
+          activity_type?: string
           created_at?: string | null
+          details?: Json | null
           id?: string
           ip_address?: string | null
           user_agent?: string | null
@@ -830,6 +830,7 @@ export type Database = {
           admin_notes: string | null
           amount: number
           created_at: string | null
+          currency: string | null
           id: string
           payment_method: string | null
           processed_at: string | null
@@ -845,6 +846,7 @@ export type Database = {
           admin_notes?: string | null
           amount: number
           created_at?: string | null
+          currency?: string | null
           id?: string
           payment_method?: string | null
           processed_at?: string | null
@@ -860,6 +862,7 @@ export type Database = {
           admin_notes?: string | null
           amount?: number
           created_at?: string | null
+          currency?: string | null
           id?: string
           payment_method?: string | null
           processed_at?: string | null

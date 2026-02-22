@@ -16,9 +16,17 @@ export const withdrawalService = {
         user_id: userId,
         amount,
         currency,
-        withdrawal_method: withdrawalMethod,
-        account_details: accountDetails,
-        status: "pending",
+        withdrawal_type: withdrawalMethod, // Map withdrawalMethod param to withdrawal_type column
+        account_details: accountDetails, // Note: db expects payment_method or details? Checking schema...
+        // Error said: payment_method?: string; ... withdrawal_type: string;
+        // The account_details param likely needs to go into a JSON column if available, or mapped.
+        // Let's check if 'account_details' column exists in error msg... 
+        // Error: "Object literal may only specify known properties... 'withdrawal_method' does not exist... 'payment_method'?, 'withdrawal_type'?"
+        // It DOES NOT list 'account_details' in the known properties list in the error message!
+        // It lists: admin_id, admin_notes, amount, created_at, currency, id, payment_method, processed_at, status, updated_at, usdt_equivalent, user_id, wallet_address, withdrawal_type.
+        // So 'account_details' column does NOT exist. We should probably use 'payment_method' for the details text or 'wallet_address'.
+        // Let's put account details string into 'wallet_address' or 'payment_method'.
+        payment_method: JSON.stringify(accountDetails),
       });
 
       if (error) throw error;

@@ -91,7 +91,7 @@ export const rewardService = {
           spent_amount: spentAmount,
           spent_currency: spentCurrency,
           total_tokens: totalTokens,
-          distribution,
+          distribution: distribution as unknown as any, // Cast to any to satisfy Json type
         },
       });
 

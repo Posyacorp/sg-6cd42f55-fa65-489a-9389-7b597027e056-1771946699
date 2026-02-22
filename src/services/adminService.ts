@@ -314,18 +314,20 @@ export const adminService = {
 
   // ============ USER ACTIVITY ============
 
-  async logUserActivity(userId: string, actionType: string, details?: any) {
+  async logUserActivity(
+    userId: string,
+    activityType: string,
+    details: any = {}
+  ): Promise<{ success: boolean; error?: any }> {
     try {
-      const { error } = await supabase
-        .from("user_activity_logs")
-        .insert({
-          user_id: userId,
-          action_type: actionType,
-          action_details: details,
-        });
+      const { error } = await supabase.from("user_activity_logs").insert({
+        user_id: userId,
+        activity_type: activityType,
+        details,
+      });
 
       if (error) throw error;
-      return { success: true, error: null };
+      return { success: true };
     } catch (error) {
       console.error("Error logging user activity:", error);
       return { success: false, error };
