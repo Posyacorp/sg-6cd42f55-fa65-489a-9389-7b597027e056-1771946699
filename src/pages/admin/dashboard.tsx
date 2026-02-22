@@ -166,7 +166,7 @@ export default function AdminDashboard() {
               <LineChart
                 title=""
                 data={userGrowth}
-                dataKeys={["users"]}
+                dataKeys={[{ key: "users", color: "#3b82f6", name: "Users" }]}
                 xAxisKey="date"
                 height={300}
               />

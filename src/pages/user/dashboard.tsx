@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Wallet, Gift, Users, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { LineChart } from "@/components/ui/line-chart";
+import { LineChart } from "@/components/charts/LineChart";
 
 export default function UserDashboard() {
   const { user, profile } = useAuth();
@@ -16,6 +16,12 @@ export default function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const [walletData, setWalletData] = useState({ coins: 0, beans: 0, reward_tokens: 0 });
   const [referralStats, setReferralStats] = useState({ total: 0, earnings: 0 });
+  
+  // Mock activity data
+  const activityData = Array.from({ length: 7 }, (_, i) => ({
+    date: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    activity: Math.floor(Math.random() * 10),
+  }));
 
   useEffect(() => {
     if (user) {

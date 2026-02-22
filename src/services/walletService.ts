@@ -8,7 +8,6 @@ export interface WalletData {
   coins: number;
   beans: number;
   reward_tokens: number;
-  tokens: number;
 }
 
 export interface TransactionData {
