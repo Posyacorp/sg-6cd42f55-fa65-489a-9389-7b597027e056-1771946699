@@ -26,7 +26,7 @@ export const messageService = {
           user2:profiles!conversations_user2_id_fkey(id, full_name, email, avatar_url)
         `)
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
-        .order("last_message_at", { ascending: false });
+        .order("last_message_at", { ascending: false }) as any;
 
       if (error) throw error;
 
