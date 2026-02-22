@@ -1,5 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export interface AuthUser {
   id: string;
@@ -11,6 +14,11 @@ export interface AuthUser {
 export interface AuthError {
   message: string;
   code?: string;
+}
+
+export interface UserWithProfile {
+  user: AuthUser;
+  profile: Profile;
 }
 
 // Dynamic URL Helper
@@ -34,15 +42,33 @@ const getURL = () => {
 }
 
 export const authService = {
-  // Get current user
-  async getCurrentUser(): Promise<AuthUser | null> {
+  // Get current user with profile
+  async getCurrentUser(): Promise<UserWithProfile> {
     const { data: { user } } = await supabase.auth.getUser();
-    return user ? {
+    
+    if (!user) {
+      throw new Error("No authenticated user");
+    }
+
+    // Get profile data
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (error || !profile) {
+      throw new Error("Profile not found");
+    }
+
+    const authUser: AuthUser = {
       id: user.id,
       email: user.email || "",
       user_metadata: user.user_metadata,
       created_at: user.created_at
-    } : null;
+    };
+
+    return { user: authUser, profile };
   },
 
   // Get current session
