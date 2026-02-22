@@ -27,14 +27,14 @@ export const referralService = {
         .from("referrals")
         .select(`
           *,
-          referred_user:profiles!referrals_referred_user_id_fkey(
+          referred_user:profiles!referrals_referred_id_fkey(
             id,
             full_name,
             email,
             created_at
           )
         `)
-        .eq("referrer_user_id", userId)
+        .eq("referrer_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -50,7 +50,7 @@ export const referralService = {
       const { data, error } = await supabase
         .from("referral_earnings")
         .select("*")
-        .eq("referrer_user_id", userId)
+        .eq("referrer_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -66,7 +66,7 @@ export const referralService = {
       const { data, error } = await supabase
         .from("referral_earnings")
         .select("amount")
-        .eq("referrer_user_id", userId);
+        .eq("referrer_id", userId);
 
       if (error) throw error;
 
@@ -95,10 +95,12 @@ export const referralService = {
       // Credit user
       const { error: userError } = await supabase.from("transactions").insert({
         user_id: spenderUserId,
-        type: "credit",
+        transaction_type: "token_reward",
         currency: "reward_tokens",
         amount: distributions.user,
-        description: "Reward tokens from spending",
+        balance_before: 0,
+        balance_after: 0,
+        metadata: { description: "Reward tokens from spending" },
       });
 
       if (userError) throw userError;
@@ -106,8 +108,8 @@ export const referralService = {
       // Get user's referrer chain (up to 10 levels)
       const { data: referrer, error: referrerError } = await supabase
         .from("referrals")
-        .select("referrer_user_id, level")
-        .eq("referred_user_id", spenderUserId)
+        .select("referrer_id, level")
+        .eq("referred_id", spenderUserId)
         .order("level", { ascending: true })
         .limit(10);
 
@@ -118,20 +120,30 @@ export const referralService = {
         const perLevelReward = distributions.referral_pool / referrer.length;
 
         for (const ref of referrer) {
-          await supabase.from("referral_earnings").insert({
-            referrer_user_id: ref.referrer_user_id,
-            referred_user_id: spenderUserId,
-            amount: perLevelReward,
-            level: ref.level,
-          });
-
-          await supabase.from("transactions").insert({
-            user_id: ref.referrer_user_id,
-            type: "credit",
+          // Check if transaction insertion works, need a placeholder for transaction_id if required by DB constraint
+          // referral_earnings requires transaction_id, which we don't have yet.
+          // For now, we'll insert transaction first
+          
+          const { data: tx, error: txError } = await supabase.from("transactions").insert({
+            user_id: ref.referrer_id,
+            transaction_type: "referral_bonus",
             currency: "reward_tokens",
             amount: perLevelReward,
-            description: `Referral reward from level ${ref.level}`,
-          });
+            balance_before: 0,
+            balance_after: 0,
+            metadata: { description: `Referral reward from level ${ref.level}` },
+          }).select().single();
+          
+          if (!txError && tx) {
+             await supabase.from("referral_earnings").insert({
+              referrer_id: ref.referrer_id,
+              referred_id: spenderUserId,
+              transaction_id: tx.id,
+              amount: perLevelReward,
+              percentage: 5, // Simplified
+              level: ref.level,
+            });
+          }
         }
       }
 

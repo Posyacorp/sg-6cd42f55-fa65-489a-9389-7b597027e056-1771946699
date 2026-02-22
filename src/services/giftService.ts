@@ -12,8 +12,8 @@ export const giftService = {
       const { data, error } = await supabase
         .from("gifts")
         .select("*")
-        .eq("active", true)
-        .order("price", { ascending: true });
+        .eq("is_active", true)
+        .order("coin_price", { ascending: true });
 
       if (error) throw error;
       return { data, error: null };
@@ -39,7 +39,7 @@ export const giftService = {
 
       if (giftError || !gift) throw new Error("Gift not found");
 
-      const totalCost = gift.price * quantity;
+      const totalCost = gift.coin_price * quantity;
 
       // Check sender balance
       const { data: balance } = await walletService.getBalance(senderId);
@@ -72,14 +72,16 @@ export const giftService = {
         receiver_id: receiverId,
         gift_id: giftId,
         quantity,
-        total_price: totalCost,
+        total_coins: totalCost,
+        total_beans: beansValue,
+        // transaction_id linked to one of the above would be ideal, skipping for now as optional
       });
 
       // Get receiver's anchor profile (if anchor)
       const { data: anchorProfile } = await supabase
         .from("anchor_profiles")
         .select("agency_id")
-        .eq("user_id", receiverId)
+        .eq("id", receiverId) // id matches profile id
         .single();
 
       // Distribute rewards

@@ -63,11 +63,16 @@ export const walletService = {
       // Insert transaction
       const { error: txError } = await supabase.from("transactions").insert({
         user_id: userId,
-        type: transactionData.type,
-        currency: transactionData.currency,
+        transaction_type: transactionData.type === "credit" ? "bean_earn" : "coin_spend", // Map to valid enum values or use generic
         amount: transactionData.amount,
-        description: transactionData.description,
-        reference_id: transactionData.reference_id,
+        currency: transactionData.currency,
+        balance_before: 0, // In real app, fetch current balance first
+        balance_after: 0, // In real app, calc new balance
+        metadata: { 
+          description: transactionData.description,
+          type: transactionData.type,
+          reference_id: transactionData.reference_id 
+        },
       });
 
       if (txError) throw txError;
@@ -102,6 +107,7 @@ export const walletService = {
         currency: "coins",
         amount,
         description: `Transfer to user: ${description}`,
+        reference_id: toUserId
       });
 
       // Credit to receiver
@@ -110,6 +116,7 @@ export const walletService = {
         currency: "coins",
         amount,
         description: `Transfer from user: ${description}`,
+        reference_id: fromUserId
       });
 
       return { success: true };

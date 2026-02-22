@@ -546,6 +546,7 @@ export type Database = {
           full_name: string | null
           id: string
           last_login_at: string | null
+          referral_code: string | null
           role: string | null
           status: string | null
           updated_at: string | null
@@ -560,6 +561,7 @@ export type Database = {
           full_name?: string | null
           id: string
           last_login_at?: string | null
+          referral_code?: string | null
           role?: string | null
           status?: string | null
           updated_at?: string | null
@@ -574,6 +576,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           last_login_at?: string | null
+          referral_code?: string | null
           role?: string | null
           status?: string | null
           updated_at?: string | null
@@ -889,7 +892,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_wallet_balance: {
+        Args: { p_amount: number; p_currency: string; p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
