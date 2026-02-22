@@ -1,178 +1,193 @@
 import { SEO } from "@/components/SEO";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { exportToCSV } from "@/lib/export";
-import { 
-  Search,
-  Filter,
-  Star,
-  Download,
-  TrendingUp
-} from "lucide-react";
+import { Search, UserPlus, TrendingUp, Award } from "lucide-react";
+import { FilteredChart } from "@/components/charts/FilteredChart";
+import { BarChart } from "@/components/charts/BarChart";
+import { LineChart } from "@/components/charts/LineChart";
 
-export default function AdminAnchors() {
-  const anchors = [
-    { 
-      id: "A001", 
-      name: "Anchor_A", 
-      level: 5, 
-      rating: 4.8, 
-      earnings: "$45,230", 
-      calls: 892,
-      status: "verified",
-      agency: "Agency_1"
-    },
-    { 
-      id: "A002", 
-      name: "Anchor_B", 
-      level: 4, 
-      rating: 4.6, 
-      earnings: "$32,450", 
-      calls: 645,
-      status: "verified",
-      agency: "Agency_1"
-    },
-    { 
-      id: "A003", 
-      name: "Anchor_C", 
-      level: 3, 
-      rating: 4.5, 
-      earnings: "$28,900", 
-      calls: 534,
-      status: "pending",
-      agency: "Agency_2"
-    },
-    { 
-      id: "A004", 
-      name: "Anchor_D", 
-      level: 4, 
-      rating: 4.7, 
-      earnings: "$38,120", 
-      calls: 723,
-      status: "verified",
-      agency: "Independent"
-    }
+export default function AdminAnchorsPage() {
+  // Anchor performance data
+  const anchorPerformanceData = [
+    { date: "2026-02-01", earnings: 45000, sessions: 320, rating: 4.8, category: "top", level: "diamond" },
+    { date: "2026-02-05", earnings: 52000, sessions: 380, rating: 4.9, category: "top", level: "diamond" },
+    { date: "2026-02-10", earnings: 48000, sessions: 350, rating: 4.7, category: "top", level: "platinum" },
+    { date: "2026-02-15", earnings: 58000, sessions: 420, rating: 4.9, category: "rising", level: "diamond" },
+    { date: "2026-02-20", earnings: 62000, sessions: 450, rating: 5.0, category: "rising", level: "diamond" },
   ];
 
-  const handleExport = () => {
-    exportToCSV(anchors, "platform_anchors");
-  };
+  // Anchor level distribution
+  const levelDistributionData = [
+    { name: "Diamond", value: 8, category: "premium", earnings: 450000 },
+    { name: "Platinum", value: 15, category: "premium", earnings: 380000 },
+    { name: "Gold", value: 28, category: "standard", earnings: 280000 },
+    { name: "Silver", value: 45, category: "standard", earnings: 180000 },
+    { name: "Bronze", value: 62, category: "entry", earnings: 95000 },
+  ];
 
   return (
     <>
-      <SEO title="Anchors - Pukaarly" />
+      <SEO title="Anchors - Admin Dashboard" />
       <DashboardLayout role="admin">
         <div className="space-y-6">
+          {/* Header */}
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold">Anchor Management</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage and verify anchors</p>
+            <div>
+              <h1 className="text-3xl font-bold">Anchor Management</h1>
+              <p className="text-muted-foreground mt-1">
+                Monitor and manage platform anchors
+              </p>
+            </div>
+            <Button>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Add Anchor
+            </Button>
           </div>
 
-          {/* Stats */}
-          <div className="grid md:grid-cols-4 gap-6">
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total Anchors</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Anchors
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">342</div>
-                <p className="text-xs text-green-600 mt-1">+18 this week</p>
+                <div className="text-2xl font-bold">158</div>
+                <Badge variant="secondary" className="mt-1">
+                  <TrendingUp className="mr-1 h-3 w-3" />
+                  +5.2%
+                </Badge>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Verified</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">298</div>
-                <p className="text-xs text-gray-500 mt-1">87% verified</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">23</div>
-                <p className="text-xs text-yellow-600 mt-1">Requires action</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Avg. Rating</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">4.6</div>
-                <p className="text-xs text-gray-500 mt-1">Out of 5.0</p>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Search and Actions */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input placeholder="Search anchors..." className="pl-10" />
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Active Now
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">42</div>
+                <Badge className="mt-1 bg-green-500">Online</Badge>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Avg. Rating
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold flex items-center">
+                  4.8
+                  <Award className="ml-2 h-5 w-5 text-yellow-500" />
                 </div>
-                <Button variant="outline">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filter
-                </Button>
-                <Button onClick={handleExport} variant="outline">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
+                <Badge variant="secondary" className="mt-1">Excellent</Badge>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Sessions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">8,924</div>
+                <Badge variant="secondary" className="mt-1">This month</Badge>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Filtered Performance Chart */}
+          <FilteredChart
+            title="Anchor Performance Trends"
+            description="Analyze anchor performance with multi-dimensional filtering"
+            data={anchorPerformanceData}
+            filterConfig={{
+              dateRange: true,
+              categories: [
+                { label: "Top Performers", value: "top" },
+                { label: "Rising Stars", value: "rising" },
+              ],
+              metrics: [
+                { label: "Earnings", value: "earnings" },
+                { label: "Sessions", value: "sessions" },
+                { label: "Rating", value: "rating" },
+              ],
+              search: true,
+            }}
+          >
+            {(filteredData, activeFilters) => (
+              <LineChart
+                title="Performance Metrics"
+                data={filteredData}
+                dataKeys={activeFilters.selectedMetrics.map((metric) => ({
+                  key: metric,
+                  color: metric === "earnings" ? "#10b981" : 
+                         metric === "sessions" ? "#3b82f6" : "#f59e0b"
+                }))}
+                xAxisKey="date"
+                height={350}
+              />
+            )}
+          </FilteredChart>
+
+          {/* Filtered Level Distribution */}
+          <FilteredChart
+            title="Anchor Level Distribution"
+            description="View anchor distribution across experience levels and earnings"
+            data={levelDistributionData}
+            filterConfig={{
+              categories: [
+                { label: "Premium Tiers", value: "premium" },
+                { label: "Standard Tiers", value: "standard" },
+                { label: "Entry Level", value: "entry" },
+              ],
+              search: true,
+            }}
+          >
+            {(filteredData) => (
+              <BarChart
+                title="Level Distribution"
+                data={filteredData}
+                dataKeys={[
+                  { key: "value", color: "#3b82f6", name: "Anchor Count" },
+                  { key: "earnings", color: "#10b981", name: "Total Earnings" }
+                ]}
+                xAxisKey="name"
+                height={300}
+              />
+            )}
+          </FilteredChart>
+
+          {/* Anchor List */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Anchor Directory</CardTitle>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search anchors..."
+                      className="pl-8 w-[250px]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-muted-foreground">
+                Anchor directory table will be populated with real data
               </div>
             </CardContent>
           </Card>
-
-          {/* Anchors List */}
-          <div className="grid gap-4">
-            {anchors.map((anchor) => (
-              <Card key={anchor.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-xl">
-                        {anchor.name.charAt(anchor.name.length - 1)}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-xl font-bold">{anchor.name}</h3>
-                          <Badge variant={anchor.status === "verified" ? "default" : "secondary"}>
-                            {anchor.status}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                            <span>{anchor.rating}</span>
-                          </div>
-                          <span>Level {anchor.level}</span>
-                          <span>{anchor.calls} calls</span>
-                          <span>Agency: {anchor.agency}</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">ID: {anchor.id}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Earnings</p>
-                      <p className="text-2xl font-bold">{anchor.earnings}</p>
-                      <p className="text-sm text-green-600 flex items-center justify-end gap-1 mt-1">
-                        <TrendingUp className="w-4 h-4" />
-                        +15% growth
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </div>
       </DashboardLayout>
     </>
