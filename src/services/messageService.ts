@@ -194,13 +194,14 @@ export const messageService = {
 
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      // Bypass TS2589 by avoiding destructuring and explicit any at each step
-      const rpcCall: any = await (supabase as any).rpc("get_unread_message_count", {
+      // Bypass TS2589: assign RPC promise to any variable BEFORE awaiting
+      const rpcPromise: any = (supabase as any).rpc("get_unread_message_count", {
         p_user_id: userId,
       });
       
-      const data: any = rpcCall.data;
-      const error: any = rpcCall.error;
+      const result: any = await rpcPromise;
+      const data: any = result.data;
+      const error: any = result.error;
 
       if (error) throw error;
       return { data: data || 0, error: null };
