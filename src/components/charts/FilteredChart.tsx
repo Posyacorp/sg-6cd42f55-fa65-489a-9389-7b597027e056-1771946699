@@ -163,7 +163,7 @@ export function FilteredChart({
     if (format === "csv") {
       exportToCSV(exportData, filename);
     } else {
-      exportChartToPDF(`filtered-chart-${title}`, title, exportData);
+      exportChartToPDF(title, exportData, filename);
     }
   };
 
@@ -286,10 +286,10 @@ export function FilteredChart({
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="range"
-                        selected={dateRange}
+                        selected={dateRange.from && dateRange.to ? dateRange as { from: Date; to: Date } : undefined}
                         onSelect={(range) => {
                           if (range) {
-                            setDateRange(range as any);
+                            setDateRange(range);
                             setQuickRange("custom");
                           }
                         }}
