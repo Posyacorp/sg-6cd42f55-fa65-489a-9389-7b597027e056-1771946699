@@ -1,229 +1,198 @@
-import { SEO } from "@/components/SEO";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LineChart } from "@/components/charts/LineChart";
+import { BarChart } from "@/components/charts/BarChart";
+import { PieChart } from "@/components/charts/PieChart";
 import { 
   Users, 
   UserCheck, 
-  DollarSign, 
-  Activity
+  Building2, 
+  DollarSign,
+  TrendingUp,
+  Gift,
+  Wallet
 } from "lucide-react";
-import { AreaChart } from "@/components/charts/AreaChart";
-import { BarChart } from "@/components/charts/BarChart";
-import { PieChart } from "@/components/charts/PieChart";
-import { DrillDownChart } from "@/components/charts/DrillDownChart";
+import { adminService } from "@/services/adminService";
 
 export default function AdminDashboard() {
-  const revenueData = [
-    { month: "Jan", revenue: 180000 },
-    { month: "Feb", revenue: 220000 },
-    { month: "Mar", revenue: 200000 },
-    { month: "Apr", revenue: 250000 },
-    { month: "May", revenue: 284000 },
-    { month: "Jun", revenue: 310000 },
-  ];
+  const [stats, setStats] = useState<any>(null);
+  const [growthData, setGrowthData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const userGrowth = [
-    { month: "Jan", users: 8500 },
-    { month: "Feb", users: 9200 },
-    { month: "Mar", users: 10100 },
-    { month: "Apr", users: 11200 },
-    { month: "May", users: 12400 },
-    { month: "Jun", users: 13800 },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  const tokenDistribution = [
-    { name: "Users", value: 45 },
-    { name: "Anchors", value: 30 },
-    { name: "Reserve", value: 15 },
-    { name: "Team", value: 10 },
-  ];
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const [statsRes, growthRes] = await Promise.all([
+        adminService.getDashboardStats(),
+        adminService.getUserGrowthData(30)
+      ]);
 
-  const revenueDrillDown = [
-    {
-      name: "Video Calls",
-      value: 125000,
-      drillDown: [
-        { name: "1-on-1 Calls", value: 75000 },
-        { name: "Group Calls", value: 35000 },
-        { name: "Premium Calls", value: 15000 },
-      ]
-    },
-    {
-      name: "Gifts",
-      value: 95000,
-      drillDown: [
-        { name: "Roses", value: 45000 },
-        { name: "Hearts", value: 30000 },
-        { name: "Diamonds", value: 20000 },
-      ]
-    },
-    {
-      name: "Subscriptions",
-      value: 55000,
-      drillDown: [
-        { name: "Basic", value: 25000 },
-        { name: "Premium", value: 20000 },
-        { name: "VIP", value: 10000 },
-      ]
-    },
-    {
-      name: "Other",
-      value: 35000,
-      drillDown: [
-        { name: "Profile Boosts", value: 15000 },
-        { name: "Stickers", value: 12000 },
-        { name: "Badges", value: 8000 },
-      ]
-    },
-  ];
+      if (statsRes.data) setStats(statsRes.data);
+      if (growthRes.data) {
+        // Convert to chart format
+        const chartData = Object.entries(growthRes.data).map(([date, count]) => ({
+          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          users: count as number
+        }));
+        setGrowthData(chartData);
+      }
+    } catch (error) {
+      console.error("Failed to fetch dashboard data", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <>
-      <SEO title="Admin Dashboard - Pukaarly" />
-      <DashboardLayout role="admin">
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-gray-600 dark:text-gray-400">Platform overview and management</p>
-          </div>
-
-          {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                <Users className="w-4 h-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">12,453</div>
-                <p className="text-xs text-green-600 mt-1">+342 this week</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Active Anchors</CardTitle>
-                <UserCheck className="w-4 h-4 text-purple-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">847</div>
-                <p className="text-xs text-green-600 mt-1">+45 this week</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                <DollarSign className="w-4 h-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">$284,340</div>
-                <p className="text-xs text-green-600 mt-1">+12.5% vs last month</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Tokens Minted</CardTitle>
-                <Activity className="w-4 h-4 text-orange-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">11.4M</div>
-                <p className="text-xs text-gray-500 mt-1">Total supply</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Drill-Down Chart - Revenue by Category */}
-          <DrillDownChart
-            title="Revenue by Category"
-            data={revenueDrillDown}
-            dataKey="value"
-            colors={["#8b5cf6", "#06b6d4", "#10b981", "#f97316"]}
-          />
-
-          {/* Charts Section */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue Overview</CardTitle>
-                <CardDescription>Monthly platform revenue</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AreaChart
-                  title="Revenue Overview"
-                  data={revenueData}
-                  dataKey="revenue"
-                  color="#16a34a"
-                  xAxisKey="month"
-                  height={300}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>User Growth</CardTitle>
-                <CardDescription>Total registered users trend</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <BarChart
-                  title="User Growth"
-                  data={userGrowth}
-                  dataKeys={[{ key: "users", color: "#2563eb", name: "Users" }]}
-                  xAxisKey="month"
-                  height={300}
-                />
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Token Distribution</CardTitle>
-                <CardDescription>Current supply allocation</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PieChart
-                  title="Token Distribution"
-                  data={tokenDistribution}
-                  colors={["#3b82f6", "#9333ea", "#10b981", "#f97316"]}
-                  height={300}
-                  innerRadius={60}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Pending Approvals</CardTitle>
-                <CardDescription>Actions requiring admin attention</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { item: "Withdrawal Request", user: "Sarah K.", amount: "$150" },
-                    { item: "Anchor Application", user: "Emma L.", amount: "-" },
-                    { item: "Agency Application", user: "Star Agency", amount: "-" },
-                    { item: "Withdrawal Request", user: "John D.", amount: "$75" }
-                  ].map((pending, i) => (
-                    <div key={i} className="flex items-center justify-between py-3 border-b last:border-0 border-gray-200 dark:border-gray-800">
-                      <div>
-                        <p className="font-medium">{pending.item}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{pending.user}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{pending.amount}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+    <DashboardLayout role="admin">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+          <p className="text-muted-foreground">
+            Overview of platform metrics and user statistics
+          </p>
         </div>
-      </DashboardLayout>
-    </>
+
+        {/* Statistics Cards */}
+        {stats && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalUsers}</div>
+                <p className="text-xs text-muted-foreground">
+                  +{stats.newUsersThisWeek} this week
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+                <UserCheck className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.activeUsers}</div>
+                <p className="text-xs text-muted-foreground">
+                  {((stats.activeUsers / stats.totalUsers) * 100).toFixed(1)}% of total
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Anchors</CardTitle>
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.usersByRole.anchor}</div>
+                <p className="text-xs text-muted-foreground">Content creators</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Agencies</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.usersByRole.agency}</div>
+                <p className="text-xs text-muted-foreground">Partner agencies</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Charts */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>User Growth (Last 30 Days)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading || !growthData ? (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  Loading chart...
+                </div>
+              ) : (
+                <LineChart
+                  data={growthData}
+                  xKey="date"
+                  yKey="users"
+                  title="New Users"
+                  color="#22c55e"
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Users by Role</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading || !stats ? (
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  Loading chart...
+                </div>
+              ) : (
+                <PieChart
+                  data={[
+                    { name: "Users", value: stats.usersByRole.user, color: "#3b82f6" },
+                    { name: "Anchors", value: stats.usersByRole.anchor, color: "#a855f7" },
+                    { name: "Agencies", value: stats.usersByRole.agency, color: "#ec4899" },
+                    { name: "Admins", value: stats.usersByRole.admin, color: "#10b981" }
+                  ]}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Stats Grid */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">New Today</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.newUsersToday || 0}</div>
+              <p className="text-xs text-muted-foreground">Registered today</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Suspended</CardTitle>
+              <Users className="h-4 w-4 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.suspendedUsers || 0}</div>
+              <p className="text-xs text-muted-foreground">Temporarily suspended</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Banned</CardTitle>
+              <Users className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats?.bannedUsers || 0}</div>
+              <p className="text-xs text-muted-foreground">Permanently banned</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </DashboardLayout>
   );
 }
