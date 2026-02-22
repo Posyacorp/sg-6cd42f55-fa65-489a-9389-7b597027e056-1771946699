@@ -192,16 +192,12 @@ export const messageService = {
     }
   },
 
+  // @ts-ignore - Bypass TS2589 for RPC call with complex generated types
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      // Bypass TS2589: assign RPC promise to any variable BEFORE awaiting
-      const rpcPromise: any = (supabase as any).rpc("get_unread_message_count", {
+      const { data, error } = await supabase.rpc("get_unread_message_count", {
         p_user_id: userId,
       });
-      
-      const result: any = await rpcPromise;
-      const data: any = result.data;
-      const error: any = result.error;
 
       if (error) throw error;
       return { data: data || 0, error: null };
