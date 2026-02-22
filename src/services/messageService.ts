@@ -194,49 +194,39 @@ export const messageService = {
 
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      // Simplified approach: Get all unread messages where user is NOT the sender
-      // Then filter by conversations where user is a participant
+      // Step 1: Get user's conversation IDs separately to avoid type complexity
+      const convIds: string[] = [];
       
-      // Step 1: Get user's conversation IDs
-      const { data: conv1 } = await supabase
+      const { data: c1 } = await supabase
         .from("conversations")
         .select("id")
         .eq("user1_id", userId);
-
-      const { data: conv2 } = await supabase
+      
+      const { data: c2 } = await supabase
         .from("conversations")
         .select("id")
         .eq("user2_id", userId);
 
-      const allConvs = [...(conv1 || []), ...(conv2 || [])];
-      const convIds = Array.from(new Set(allConvs.map(c => c.id)));
+      if (c1) convIds.push(...c1.map(c => c.id));
+      if (c2) convIds.push(...c2.map(c => c.id));
 
-      if (convIds.length === 0) return { data: 0, error: null };
+      const uniqueIds = Array.from(new Set(convIds));
+      if (uniqueIds.length === 0) return { data: 0, error: null };
 
-      // Step 2: For each conversation, count unread messages
-      let totalUnread = 0;
-      
-      for (const convId of convIds) {
-        const { data: msgs } = await supabase
-          .from("messages")
-          .select("id", { count: "exact", head: true })
-          .eq("conversation_id", convId)
-          .neq("sender_id", userId)
-          .eq("is_read", false);
-        
-        // Since we used head: true, data will be null but count is in response
-        // For simplicity, let's just fetch the actual messages
-        const { data: actualMsgs } = await supabase
+      // Step 2: Count unread messages across all conversations
+      let total = 0;
+      for (const cid of uniqueIds) {
+        const { data } = await supabase
           .from("messages")
           .select("id")
-          .eq("conversation_id", convId)
+          .eq("conversation_id", cid)
           .neq("sender_id", userId)
           .eq("is_read", false);
         
-        totalUnread += actualMsgs?.length || 0;
+        total += data?.length || 0;
       }
 
-      return { data: totalUnread, error: null };
+      return { data: total, error: null };
     } catch (error) {
       console.error("Error getting unread count:", error);
       return { data: null, error };
