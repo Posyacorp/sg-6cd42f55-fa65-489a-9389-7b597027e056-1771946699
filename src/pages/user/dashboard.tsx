@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Wallet, Gift, Users, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { LineChart } from "@/components/ui/line-chart";
 
 export default function UserDashboard() {
   const { user, profile } = useAuth();
@@ -185,6 +186,21 @@ export default function UserDashboard() {
                 Invite Friends
               </Button>
             </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LineChart
+              title=""
+              data={activityData}
+              dataKeys={[{ key: "activity", color: "#3b82f6", name: "Activity" }]}
+              xAxisKey="date"
+              height={250}
+            />
           </CardContent>
         </Card>
       </div>

@@ -25,6 +25,8 @@ export interface UserStatistics {
   newUsersToday: number;
   newUsersThisWeek: number;
   newUsersThisMonth: number;
+  totalAnchors: number;
+  totalAgencies: number;
   usersByRole: {
     user: number;
     anchor: number;
@@ -415,6 +417,8 @@ export const adminService = {
         newUsersToday: allUsers?.filter((u) => new Date(u.created_at) >= today).length || 0,
         newUsersThisWeek: allUsers?.filter((u) => new Date(u.created_at) >= weekAgo).length || 0,
         newUsersThisMonth: allUsers?.filter((u) => new Date(u.created_at) >= monthAgo).length || 0,
+        totalAnchors: allUsers?.filter((u) => u.role === "anchor").length || 0,
+        totalAgencies: allUsers?.filter((u) => u.role === "agency").length || 0,
         usersByRole: {
           user: allUsers?.filter((u) => u.role === "user").length || 0,
           anchor: allUsers?.filter((u) => u.role === "anchor").length || 0,

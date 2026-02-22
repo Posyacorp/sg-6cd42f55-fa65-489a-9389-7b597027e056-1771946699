@@ -1,160 +1,210 @@
-import { SEO } from "@/components/SEO";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Coins,
-  Users,
-  Video,
-  Star
-} from "lucide-react";
-import { BarChart } from "@/components/charts/BarChart";
-import { AreaChart } from "@/components/charts/AreaChart";
+import { useAuth } from "@/hooks/useAuth";
+import { walletService } from "@/services/walletService";
+import { Loader2, DollarSign, TrendingUp, Users, Phone, Star } from "lucide-react";
+import { useRouter } from "next/router";
 
 export default function AnchorDashboard() {
-  const earningsData = [
-    { day: "Mon", beans: 4500 },
-    { day: "Tue", beans: 6200 },
-    { day: "Wed", beans: 5100 },
-    { day: "Thu", beans: 7800 },
-    { day: "Fri", beans: 9200 },
-    { day: "Sat", beans: 12400 },
-    { day: "Sun", beans: 10500 },
-  ];
+  const { user, loading: authLoading, isAnchor } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalEarnings: 0,
+    todayEarnings: 0,
+    totalCalls: 0,
+    todayCalls: 0,
+    rating: 0,
+    activeUsers: 0,
+  });
+  const [wallet, setWallet] = useState({
+    beans: 0,
+    reward_tokens: 0,
+  });
 
-  const sessionData = [
-    { day: "Mon", minutes: 120 },
-    { day: "Tue", minutes: 180 },
-    { day: "Wed", minutes: 150 },
-    { day: "Thu", minutes: 240 },
-    { day: "Fri", minutes: 300 },
-    { day: "Sat", minutes: 420 },
-    { day: "Sun", minutes: 360 },
-  ];
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user || !isAnchor) {
+        router.push("/auth/login");
+        return;
+      }
+      loadDashboardData();
+    }
+  }, [user, authLoading, isAnchor]);
+
+  const loadDashboardData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+
+      // Load wallet balance
+      const { data: walletData } = await walletService.getBalance(user.id);
+      if (walletData) {
+        setWallet({
+          beans: walletData.beans,
+          reward_tokens: walletData.reward_tokens,
+        });
+      }
+
+      // TODO: Load anchor stats from anchor_profiles and call_sessions
+      setStats({
+        totalEarnings: walletData?.beans || 0,
+        todayEarnings: 0,
+        totalCalls: 0,
+        todayCalls: 0,
+        rating: 4.8,
+        activeUsers: 0,
+      });
+    } catch (error) {
+      console.error("Error loading dashboard:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (authLoading || loading) {
+    return (
+      <DashboardLayout role="anchor">
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <>
-      <SEO title="Dashboard - Pukaarly Anchor" />
-      <DashboardLayout role="anchor">
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Anchor Dashboard</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage your hosting sessions and earnings</p>
-          </div>
+    <DashboardLayout role="anchor">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Anchor Dashboard</h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Manage your streaming career and earnings
+          </p>
+        </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Beans Earned</CardTitle>
-                <Coins className="w-4 h-4 text-purple-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">45,230</div>
-                <p className="text-xs text-gray-500 mt-1">+15% from last month</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
-                <Video className="w-4 h-4 text-pink-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">234</div>
-                <p className="text-xs text-gray-500 mt-1">This month</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-                <Users className="w-4 h-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">89</div>
-                <p className="text-xs text-gray-500 mt-1">Regular clients</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Rating</CardTitle>
-                <Star className="w-4 h-4 text-yellow-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">4.8</div>
-                <p className="text-xs text-gray-500 mt-1">Based on 156 reviews</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Charts Section */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Weekly Earnings</CardTitle>
-                <CardDescription>Beans earned over the last 7 days</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <BarChart
-                  title="Weekly Earnings"
-                  data={earningsData}
-                  dataKeys={[{ key: "beans", color: "#9333ea", name: "Beans" }]}
-                  xAxisKey="day"
-                  height={300}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Session Trends</CardTitle>
-                <CardDescription>Daily call minutes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AreaChart
-                  title="Session Trends"
-                  data={sessionData}
-                  dataKey="minutes"
-                  color="#db2777"
-                  xAxisKey="day"
-                  height={300}
-                />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Recent Activity */}
+        {/* Stats Grid */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <Card>
-            <CardHeader>
-              <CardTitle>Recent Sessions</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {[
-                  { user: "John Doe", duration: "45 min", earned: "450 beans", time: "2 hours ago" },
-                  { user: "Alice Smith", duration: "30 min", earned: "300 beans", time: "5 hours ago" },
-                  { user: "Bob Johnson", duration: "60 min", earned: "600 beans", time: "1 day ago" },
-                  { user: "Carol White", duration: "25 min", earned: "250 beans", time: "1 day ago" }
-                ].map((session, i) => (
-                  <div key={i} className="flex items-center justify-between py-3 border-b last:border-0 border-gray-200 dark:border-gray-800">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white font-semibold">
-                        {session.user.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-medium">{session.user}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{session.duration} • {session.time}</p>
-                      </div>
-                    </div>
-                    <span className="font-semibold text-green-600">{session.earned}</span>
-                  </div>
-                ))}
-              </div>
+              <div className="text-2xl font-bold">{wallet.beans.toLocaleString()} Beans</div>
+              <p className="text-xs text-muted-foreground">
+                ≈ ${(wallet.beans * 0.01).toFixed(2)} USD
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Today's Earnings</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.todayEarnings.toLocaleString()} Beans</div>
+              <p className="text-xs text-muted-foreground">
+                +12% from yesterday
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Calls</CardTitle>
+              <Phone className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalCalls}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.todayCalls} calls today
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Rating</CardTitle>
+              <Star className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.rating} ⭐</div>
+              <p className="text-xs text-muted-foreground">
+                Based on user reviews
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Fans</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.activeUsers}</div>
+              <p className="text-xs text-muted-foreground">
+                Regular callers this month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Reward Tokens</CardTitle>
+              <Star className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{wallet.reward_tokens.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">
+                Earned from platform rewards
+              </p>
             </CardContent>
           </Card>
         </div>
-      </DashboardLayout>
-    </>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Manage your anchor profile and settings</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="grid gap-2 md:grid-cols-2">
+              <button
+                onClick={() => router.push("/anchor/call-price")}
+                className="p-4 text-left border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+              >
+                <h3 className="font-semibold">Set Call Price</h3>
+                <p className="text-sm text-gray-500">Update your per-minute rate</p>
+              </button>
+              <button
+                onClick={() => router.push("/anchor/income")}
+                className="p-4 text-left border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+              >
+                <h3 className="font-semibold">View Income</h3>
+                <p className="text-sm text-gray-500">Detailed earnings breakdown</p>
+              </button>
+              <button
+                onClick={() => router.push("/anchor/level")}
+                className="p-4 text-left border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+              >
+                <h3 className="font-semibold">Level Progress</h3>
+                <p className="text-sm text-gray-500">Track your ranking and perks</p>
+              </button>
+              <button
+                onClick={() => router.push("/anchor/withdraw")}
+                className="p-4 text-left border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+              >
+                <h3 className="font-semibold">Withdraw Earnings</h3>
+                <p className="text-sm text-gray-500">Request bean withdrawals</p>
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
   );
 }
