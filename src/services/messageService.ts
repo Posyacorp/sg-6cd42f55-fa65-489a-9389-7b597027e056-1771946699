@@ -3,6 +3,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Message = Database["public"]["Tables"]["messages"]["Row"];
 type Conversation = Database["public"]["Tables"]["conversations"]["Row"];
+type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export interface ConversationWithUser extends Conversation {
   other_user?: {
@@ -18,26 +19,49 @@ export interface ConversationWithUser extends Conversation {
 export const messageService = {
   async getConversations(userId: string): Promise<{ data: ConversationWithUser[] | null; error: any }> {
     try {
-      const { data, error } = await supabase
+      // First get conversations
+      const { data: convData, error: convError } = await supabase
         .from("conversations")
-        .select(`
-          *,
-          user1:profiles!conversations_user1_id_fkey(id, full_name, email, avatar_url),
-          user2:profiles!conversations_user2_id_fkey(id, full_name, email, avatar_url)
-        `)
+        .select("*")
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
-        .order("last_message_at", { ascending: false }) as any;
+        .order("last_message_at", { ascending: false });
 
-      if (error) throw error;
+      if (convError) throw convError;
+      if (!convData) return { data: [], error: null };
 
-      // Transform to include other_user
-      const conversations: ConversationWithUser[] = data?.map(conv => {
-        const otherUser = conv.user1_id === userId ? conv.user2 : conv.user1;
+      // Get all unique user IDs
+      const userIds = new Set<string>();
+      convData.forEach(conv => {
+        userIds.add(conv.user1_id);
+        userIds.add(conv.user2_id);
+      });
+
+      // Fetch user profiles
+      const { data: profiles, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, avatar_url")
+        .in("id", Array.from(userIds));
+
+      if (profileError) throw profileError;
+
+      // Create a map for quick lookup
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      // Transform conversations
+      const conversations: ConversationWithUser[] = convData.map(conv => {
+        const otherUserId = conv.user1_id === userId ? conv.user2_id : conv.user1_id;
+        const otherUser = profileMap.get(otherUserId);
+        
         return {
           ...conv,
-          other_user: otherUser as any,
+          other_user: otherUser ? {
+            id: otherUser.id,
+            full_name: otherUser.full_name,
+            email: otherUser.email,
+            avatar_url: otherUser.avatar_url,
+          } : undefined,
         };
-      }) || [];
+      });
 
       return { data: conversations, error: null };
     } catch (error) {
@@ -99,7 +123,7 @@ export const messageService = {
         .from("conversations")
         .select("*")
         .or(`and(user1_id.eq.${user1Id},user2_id.eq.${user2Id}),and(user1_id.eq.${user2Id},user2_id.eq.${user1Id})`)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         return { data: existing, error: null };
@@ -150,6 +174,7 @@ export const messageService = {
       if (!conversations) return { data: 0, error: null };
 
       const conversationIds = conversations.map(c => c.id);
+      if (conversationIds.length === 0) return { data: 0, error: null };
 
       const { count, error } = await supabase
         .from("messages")
