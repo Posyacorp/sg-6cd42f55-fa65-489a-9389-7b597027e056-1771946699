@@ -538,6 +538,67 @@ export type Database = {
           },
         ]
       }
+      pk_battles: {
+        Row: {
+          created_at: string | null
+          end_time: string | null
+          id: string
+          invitee_id: string
+          invitee_score: number | null
+          inviter_id: string
+          inviter_score: number | null
+          start_time: string | null
+          status: string | null
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          invitee_id: string
+          invitee_score?: number | null
+          inviter_id: string
+          inviter_score?: number | null
+          start_time?: string | null
+          status?: string | null
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          invitee_id?: string
+          invitee_score?: number | null
+          inviter_id?: string
+          inviter_score?: number | null
+          start_time?: string | null
+          status?: string | null
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pk_battles_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pk_battles_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pk_battles_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -688,6 +749,47 @@ export type Database = {
           {
             foreignKeyName: "referrals_referrer_id_fkey"
             columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      streams: {
+        Row: {
+          ended_at: string | null
+          id: string
+          started_at: string | null
+          status: string | null
+          thumbnail_url: string | null
+          title: string | null
+          user_id: string
+          viewer_count: number | null
+        }
+        Insert: {
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          thumbnail_url?: string | null
+          title?: string | null
+          user_id: string
+          viewer_count?: number | null
+        }
+        Update: {
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          thumbnail_url?: string | null
+          title?: string | null
+          user_id?: string
+          viewer_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "streams_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

@@ -1,110 +1,147 @@
-import { SEO } from "@/components/SEO";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { streamService } from "@/services/streamService";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  LayoutDashboard, 
-  Compass, 
-  MessageSquare, 
-  Wallet, 
-  User, 
-  Users, 
-  DollarSign,
-  Search,
-  Star,
-  Video
-} from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Search, Users, Play, Radio } from "lucide-react";
+import { useRouter } from "next/router";
+import { useToast } from "@/hooks/use-toast";
 
-const anchors = [
-  { name: "Sarah Smith", level: 5, rate: 50, status: "online", rating: 4.8, sessions: 234 },
-  { name: "Mike Johnson", level: 4, rate: 40, status: "online", rating: 4.9, sessions: 189 },
-  { name: "Emily Chen", level: 6, rate: 60, status: "busy", rating: 4.7, sessions: 312 },
-  { name: "David Brown", level: 3, rate: 30, status: "online", rating: 4.8, sessions: 156 },
-  { name: "Lisa Anderson", level: 5, rate: 45, status: "offline", rating: 4.6, sessions: 201 },
-  { name: "James Wilson", level: 4, rate: 35, status: "online", rating: 4.7, sessions: 178 }
-];
+export default function ExplorePage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [streams, setStreams] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
-export default function UserExplore() {
-  return (
-    <>
-      <SEO title="Explore - Pukaarly" />
+  useEffect(() => {
+    loadStreams();
+    // Set up polling for live updates
+    const interval = setInterval(loadStreams, 10000); // Refresh every 10 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadStreams = async () => {
+    try {
+      const { data } = await streamService.getActiveStreams();
+      if (data) {
+        setStreams(data);
+      }
+    } catch (error) {
+      console.error("Error loading streams:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const joinStream = (streamId: string) => {
+    router.push(`/stream/${streamId}`);
+  };
+
+  const filteredStreams = streams.filter((stream) =>
+    stream.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    stream.user?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (loading) {
+    return (
       <DashboardLayout role="user">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold">Explore Anchors</h1>
-            <p className="text-gray-600 dark:text-gray-400">Discover and connect with talented hosts</p>
-          </div>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
-          {/* Search & Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input 
-                placeholder="Search anchors..." 
-                className="pl-10"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline">All</Button>
-              <Button variant="outline">Online</Button>
-              <Button variant="outline">Top Rated</Button>
-            </div>
+  return (
+    <DashboardLayout role="user">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Explore Live Streams</h1>
+            <p className="text-muted-foreground">Watch your favorite anchors live</p>
           </div>
+          <Badge variant="outline" className="gap-2">
+            <Radio className="h-4 w-4 text-red-500 animate-pulse" />
+            {streams.length} Live
+          </Badge>
+        </div>
 
-          {/* Anchors Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {anchors.map((anchor, i) => (
-              <Card key={i} className="overflow-hidden hover:shadow-lg transition-all">
-                <div className="relative h-48 bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-3xl font-bold text-purple-600">
-                    {anchor.name.charAt(0)}
-                  </div>
-                  <Badge className={`absolute top-3 right-3 ${
-                    anchor.status === "online" ? "bg-green-500" : 
-                    anchor.status === "busy" ? "bg-yellow-500" : "bg-gray-500"
-                  }`}>
-                    {anchor.status}
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search streams or anchors..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {/* Stream Grid */}
+        {filteredStreams.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Radio className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-lg font-medium">No live streams right now</p>
+              <p className="text-sm text-muted-foreground">Check back later!</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredStreams.map((stream) => (
+              <Card
+                key={stream.id}
+                className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
+                onClick={() => joinStream(stream.id)}
+              >
+                <div className="relative aspect-video bg-muted">
+                  {stream.thumbnail_url ? (
+                    <img
+                      src={stream.thumbnail_url}
+                      alt={stream.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <Play className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                  <Badge className="absolute top-2 left-2 bg-red-500 gap-1">
+                    <Radio className="h-3 w-3 animate-pulse" />
+                    LIVE
+                  </Badge>
+                  <Badge variant="secondary" className="absolute bottom-2 right-2 gap-1">
+                    <Users className="h-3 w-3" />
+                    {stream.viewer_count || 0}
                   </Badge>
                 </div>
-                <CardContent className="pt-4">
-                  <h3 className="font-bold text-lg mb-1">{anchor.name}</h3>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Badge variant="outline">Level {anchor.level}</Badge>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      <span>{anchor.rating}</span>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <Avatar>
+                      <AvatarImage src={stream.user?.avatar_url || ""} />
+                      <AvatarFallback>
+                        {stream.user?.full_name?.charAt(0) || "A"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium truncate">{stream.title || "Untitled Stream"}</h3>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {stream.user?.full_name || "Unknown"}
+                      </p>
                     </div>
-                  </div>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Rate</span>
-                      <span className="font-semibold">{anchor.rate} coins/min</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Sessions</span>
-                      <span className="font-semibold">{anchor.sessions}</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600"
-                      disabled={anchor.status !== "online"}
-                    >
-                      <Video className="w-4 h-4 mr-2" />
-                      Connect
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      <MessageSquare className="w-4 h-4" />
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-        </div>
-      </DashboardLayout>
-    </>
+        )}
+      </div>
+    </DashboardLayout>
   );
 }

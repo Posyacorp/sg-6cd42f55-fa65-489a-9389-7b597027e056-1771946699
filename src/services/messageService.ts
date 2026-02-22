@@ -89,8 +89,8 @@ export const messageService = {
 
   async getMessages(conversationId: string, limit = 50): Promise<{ data: Message[] | null; error: any }> {
     try {
-      const { data, error } = await supabase
-        .from("messages")
+      const { data, error } = await (supabase
+        .from("messages") as any)
         .select("*")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true })
@@ -210,15 +210,16 @@ export const messageService = {
 
       if (conversationIds.length === 0) return { data: 0, error: null };
 
-      const { count, error } = await supabase
+      // Fetch unread messages and count manually
+      const { data: messages, error } = await (supabase
         .from("messages")
-        .select("*", { count: "exact", head: true })
+        .select("id")
         .in("conversation_id", conversationIds)
         .neq("sender_id", userId)
-        .eq("is_read", false);
+        .eq("is_read", false) as any);
 
       if (error) throw error;
-      return { data: count || 0, error: null };
+      return { data: messages?.length || 0, error: null };
     } catch (error) {
       console.error("Error getting unread count:", error);
       return { data: null, error };
