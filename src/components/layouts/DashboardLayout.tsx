@@ -8,7 +8,21 @@ import {
   LogOut,
   Menu,
   X,
-  Coins
+  Coins,
+  MessageSquare,
+  Wallet,
+  UserCircle,
+  UserPlus,
+  TrendingDown,
+  Compass,
+  DollarSign,
+  Settings,
+  TrendingUp,
+  Users,
+  UserCheck,
+  Building2,
+  Gift,
+  Vault
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -21,13 +35,50 @@ interface NavItem {
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  navItems: NavItem[];
   role: "user" | "anchor" | "agency" | "admin";
 }
 
-export function DashboardLayout({ children, navItems, role }: DashboardLayoutProps) {
+const navigationConfig: Record<"user" | "anchor" | "agency" | "admin", NavItem[]> = {
+  user: [
+    { label: "Dashboard", href: "/user/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
+    { label: "Explore", href: "/user/explore", icon: <Compass className="w-4 h-4" /> },
+    { label: "Messages", href: "/user/messages", icon: <MessageSquare className="w-4 h-4" /> },
+    { label: "Wallet", href: "/user/wallet", icon: <Wallet className="w-4 h-4" /> },
+    { label: "Profile", href: "/user/profile", icon: <UserCircle className="w-4 h-4" /> },
+    { label: "Referrals", href: "/user/referrals", icon: <UserPlus className="w-4 h-4" /> },
+    { label: "Withdraw", href: "/user/withdraw", icon: <TrendingDown className="w-4 h-4" /> }
+  ],
+  anchor: [
+    { label: "Dashboard", href: "/anchor/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
+    { label: "Income", href: "/anchor/income", icon: <DollarSign className="w-4 h-4" /> },
+    { label: "Call Price", href: "/anchor/call-price", icon: <Settings className="w-4 h-4" /> },
+    { label: "Level", href: "/anchor/level", icon: <TrendingUp className="w-4 h-4" /> },
+    { label: "Withdraw", href: "/anchor/withdraw", icon: <TrendingDown className="w-4 h-4" /> }
+  ],
+  agency: [
+    { label: "Dashboard", href: "/agency/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
+    { label: "Anchors", href: "/agency/anchors", icon: <Users className="w-4 h-4" /> },
+    { label: "Commission", href: "/agency/commission", icon: <DollarSign className="w-4 h-4" /> },
+    { label: "Withdrawals", href: "/agency/withdrawals", icon: <TrendingDown className="w-4 h-4" /> },
+    { label: "Invite", href: "/agency/invite", icon: <UserPlus className="w-4 h-4" /> }
+  ],
+  admin: [
+    { label: "Dashboard", href: "/admin/dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
+    { label: "Users", href: "/admin/users", icon: <Users className="w-4 h-4" /> },
+    { label: "Anchors", href: "/admin/anchors", icon: <UserCheck className="w-4 h-4" /> },
+    { label: "Agencies", href: "/admin/agencies", icon: <Building2 className="w-4 h-4" /> },
+    { label: "Economy", href: "/admin/economy", icon: <DollarSign className="w-4 h-4" /> },
+    { label: "Gifts", href: "/admin/gifts", icon: <Gift className="w-4 h-4" /> },
+    { label: "Withdrawals", href: "/admin/withdrawals", icon: <TrendingDown className="w-4 h-4" /> },
+    { label: "Treasury", href: "/admin/treasury", icon: <Vault className="w-4 h-4" /> },
+    { label: "Settings", href: "/admin/settings", icon: <Settings className="w-4 h-4" /> }
+  ]
+};
+
+export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navItems = navigationConfig[role];
 
   const roleColors = {
     user: "from-blue-600 to-cyan-600",
