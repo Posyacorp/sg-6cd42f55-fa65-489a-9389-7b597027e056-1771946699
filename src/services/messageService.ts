@@ -196,7 +196,7 @@ export const messageService = {
     try {
       const { data, error } = await supabase.rpc("get_unread_message_count", {
         p_user_id: userId,
-      });
+      }) as any;
 
       if (error) throw error;
       return { data: data || 0, error: null };
