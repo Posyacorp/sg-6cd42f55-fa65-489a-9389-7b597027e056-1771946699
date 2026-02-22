@@ -111,7 +111,8 @@ export default function UserDashboard() {
               <CardContent>
                 <AreaChart
                   data={spendingData}
-                  dataKeys={[{ key: "amount", color: "#8b5cf6", name: "Spending ($)" }]}
+                  dataKey="amount"
+                  color="#8b5cf6"
                   xAxisKey="month"
                   height={300}
                 />
@@ -143,6 +144,7 @@ export default function UserDashboard() {
               </CardHeader>
               <CardContent>
                 <PieChart
+                  title="Spending Breakdown"
                   data={spendingBreakdown}
                   colors={["#8b5cf6", "#ec4899", "#3b82f6", "#10b981"]}
                   height={300}

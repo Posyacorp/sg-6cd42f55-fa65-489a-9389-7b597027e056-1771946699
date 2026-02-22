@@ -113,7 +113,8 @@ export default function AnchorDashboard() {
               <CardContent>
                 <AreaChart
                   data={sessionData}
-                  dataKeys={[{ key: "minutes", color: "#db2777", name: "Minutes" }]}
+                  dataKey="minutes"
+                  color="#db2777"
                   xAxisKey="day"
                   height={300}
                 />

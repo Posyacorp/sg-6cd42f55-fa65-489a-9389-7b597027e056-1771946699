@@ -152,7 +152,8 @@ export default function AdminDashboard() {
               <CardContent>
                 <AreaChart
                   data={revenueData}
-                  dataKeys={[{ key: "revenue", color: "#16a34a", name: "Revenue ($)" }]}
+                  dataKey="revenue"
+                  color="#16a34a"
                   xAxisKey="month"
                   height={300}
                 />
@@ -183,6 +184,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <PieChart
+                  title="Token Distribution"
                   data={tokenDistribution}
                   colors={["#3b82f6", "#9333ea", "#10b981", "#f97316"]}
                   height={300}
