@@ -205,7 +205,7 @@ export default function UserMessages() {
                                   : "bg-muted"
                               }`}
                             >
-                              <p className="text-sm">{msg.content}</p>
+                              <p className="text-sm">{msg.message_text}</p>
                               <p className="text-xs opacity-70 mt-1">
                                 {new Date(msg.created_at).toLocaleTimeString()}
                               </p>

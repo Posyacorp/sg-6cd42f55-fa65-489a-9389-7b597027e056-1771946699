@@ -26,7 +26,7 @@ export const messageService = {
           user2:profiles!conversations_user2_id_fkey(id, full_name, email, avatar_url)
         `)
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
-        .order("updated_at", { ascending: false });
+        .order("last_message_at", { ascending: false });
 
       if (error) throw error;
 
@@ -66,23 +66,23 @@ export const messageService = {
   async sendMessage(
     conversationId: string,
     senderId: string,
-    content: string,
+    messageText: string,
     type: "text" | "image" | "gift" = "text"
   ): Promise<{ success: boolean; error?: any }> {
     try {
       const { error } = await supabase.from("messages").insert({
         conversation_id: conversationId,
         sender_id: senderId,
-        content,
+        message_text: messageText,
         message_type: type,
       });
 
       if (error) throw error;
 
-      // Update conversation updated_at
+      // Update conversation last_message_at
       await supabase
         .from("conversations")
-        .update({ updated_at: new Date().toISOString() })
+        .update({ last_message_at: new Date().toISOString() })
         .eq("id", conversationId);
 
       return { success: true };
@@ -127,10 +127,10 @@ export const messageService = {
     try {
       const { error } = await supabase
         .from("messages")
-        .update({ read: true })
+        .update({ is_read: true, read_at: new Date().toISOString() })
         .eq("conversation_id", conversationId)
         .neq("sender_id", userId)
-        .eq("read", false);
+        .eq("is_read", false);
 
       if (error) throw error;
       return { success: true };
@@ -156,7 +156,7 @@ export const messageService = {
         .select("*", { count: "exact", head: true })
         .in("conversation_id", conversationIds)
         .neq("sender_id", userId)
-        .eq("read", false);
+        .eq("is_read", false);
 
       if (error) throw error;
       return { data: count || 0, error: null };
