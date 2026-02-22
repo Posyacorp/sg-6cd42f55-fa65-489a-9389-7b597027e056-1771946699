@@ -113,48 +113,29 @@ export default function AdminDashboard() {
 
         {/* Charts */}
         <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Growth (Last 30 Days)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading || !growthData ? (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                  Loading chart...
-                </div>
-              ) : (
-                <LineChart
-                  data={growthData}
-                  xKey="date"
-                  yKey="users"
-                  title="New Users"
-                  color="#22c55e"
-                />
-              )}
-            </CardContent>
-          </Card>
+          <LineChart
+            title="User Growth (Last 30 Days)"
+            data={loading || !growthData ? [] : growthData}
+            dataKeys={[{ key: "users", color: "#22c55e", name: "New Users" }]}
+            height={300}
+            xAxisKey="date"
+          />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Users by Role</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading || !stats ? (
-                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-                  Loading chart...
-                </div>
-              ) : (
-                <PieChart
-                  data={[
-                    { name: "Users", value: stats.usersByRole.user, color: "#3b82f6" },
-                    { name: "Anchors", value: stats.usersByRole.anchor, color: "#a855f7" },
-                    { name: "Agencies", value: stats.usersByRole.agency, color: "#ec4899" },
-                    { name: "Admins", value: stats.usersByRole.admin, color: "#10b981" }
-                  ]}
-                />
-              )}
-            </CardContent>
-          </Card>
+          <PieChart
+            title="Users by Role"
+            data={
+              loading || !stats
+                ? []
+                : [
+                    { name: "Users", value: stats.usersByRole.user },
+                    { name: "Anchors", value: stats.usersByRole.anchor },
+                    { name: "Agencies", value: stats.usersByRole.agency },
+                    { name: "Admins", value: stats.usersByRole.admin },
+                  ]
+            }
+            colors={["#3b82f6", "#a855f7", "#ec4899", "#10b981"]}
+            height={300}
+          />
         </div>
 
         {/* Quick Stats Grid */}
