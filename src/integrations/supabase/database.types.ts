@@ -57,6 +57,47 @@ export type Database = {
           },
         ]
       }
+      email_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          recipient_ids: string[]
+          sent_at: string | null
+          sent_by: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          recipient_ids: string[]
+          sent_at?: string | null
+          sent_by: string
+          status?: string
+          subject: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          recipient_ids?: string[]
+          sent_at?: string | null
+          sent_by?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_notifications_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -104,6 +145,44 @@ export type Database = {
           {
             foreignKeyName: "profiles_banned_by_fkey"
             columns: ["banned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_activity_logs: {
+        Row: {
+          action_details: Json | null
+          action_type: string
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action_details?: Json | null
+          action_type: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action_details?: Json | null
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_logs_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
