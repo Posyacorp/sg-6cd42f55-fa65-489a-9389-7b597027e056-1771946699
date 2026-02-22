@@ -210,13 +210,13 @@ export const messageService = {
 
       if (conversationIds.length === 0) return { data: 0, error: null };
 
-      // Fetch unread messages and count manually
-      const { data: messages, error } = await (supabase
+      // Fetch unread messages and count manually - using type assertion to bypass TS complexity
+      const { data: messages, error } = await (supabase as any)
         .from("messages")
         .select("id")
         .in("conversation_id", conversationIds)
         .neq("sender_id", userId)
-        .eq("is_read", false) as any);
+        .eq("is_read", false);
 
       if (error) throw error;
       return { data: messages?.length || 0, error: null };
