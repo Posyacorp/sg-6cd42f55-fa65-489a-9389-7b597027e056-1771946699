@@ -194,14 +194,13 @@ export const messageService = {
 
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      // Helper to bypass TS2589 - TypeScript can't infer through function boundaries
-      const callRpc = async (): Promise<any> => {
-        return await (supabase as any).rpc("get_unread_message_count", {
-          p_user_id: userId,
-        });
-      };
-
-      const { data, error } = await callRpc();
+      // Bypass TS2589 by avoiding destructuring and explicit any at each step
+      const rpcCall: any = await (supabase as any).rpc("get_unread_message_count", {
+        p_user_id: userId,
+      });
+      
+      const data: any = rpcCall.data;
+      const error: any = rpcCall.error;
 
       if (error) throw error;
       return { data: data || 0, error: null };
