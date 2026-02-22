@@ -118,13 +118,28 @@ export const messageService = {
 
   async createConversation(user1Id: string, user2Id: string): Promise<{ data: Conversation | null; error: any }> {
     try {
-      // Check if conversation already exists
-      const { data: existing, error: searchError } = await supabase
+      // Check if conversation already exists (User 1 -> User 2)
+      let { data: existing, error: searchError } = await supabase
         .from("conversations")
         .select("*")
-        .or(`and(user1_id.eq.${user1Id},user2_id.eq.${user2Id}),and(user1_id.eq.${user2Id},user2_id.eq.${user1Id})`)
+        .eq("user1_id", user1Id)
+        .eq("user2_id", user2Id)
         .maybeSingle();
 
+      if (searchError) throw searchError;
+      if (existing) {
+        return { data: existing, error: null };
+      }
+
+      // Check reverse direction (User 2 -> User 1)
+      ({ data: existing, error: searchError } = await supabase
+        .from("conversations")
+        .select("*")
+        .eq("user1_id", user2Id)
+        .eq("user2_id", user1Id)
+        .maybeSingle());
+
+      if (searchError) throw searchError;
       if (existing) {
         return { data: existing, error: null };
       }
