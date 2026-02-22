@@ -23,8 +23,8 @@ export const messageService = {
       // We cast to any to avoid TS2589 "Type instantiation is excessively deep" error
       // caused by complex generic inference in the .or() filter
       const { data: convData, error: convError } = await (supabase
-        .from("conversations")
-        .select("*") as any)
+        .from("conversations") as any)
+        .select("*")
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
         .order("last_message_at", { ascending: false });
 
