@@ -194,11 +194,11 @@ export const messageService = {
 
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      const result: any = await supabase.rpc("get_unread_message_count", {
+      // Cast supabase client to bypass TS2589 type inference error
+      const client: any = supabase;
+      const { data, error } = await client.rpc("get_unread_message_count", {
         p_user_id: userId,
       });
-      
-      const { data, error } = result;
 
       if (error) throw error;
       return { data: data || 0, error: null };
