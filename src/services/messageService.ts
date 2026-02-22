@@ -20,14 +20,13 @@ export const messageService = {
   async getConversations(userId: string): Promise<{ data: ConversationWithUser[] | null; error: any }> {
     try {
       // First get conversations
-      const { data: convData, error: convError } = (await supabase
+      // We cast to any to avoid TS2589 "Type instantiation is excessively deep" error
+      // caused by complex generic inference in the .or() filter
+      const { data: convData, error: convError } = await (supabase
         .from("conversations")
-        .select("*")
+        .select("*") as any)
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
-        .order("last_message_at", { ascending: false })) as { 
-          data: Conversation[] | null; 
-          error: any 
-        };
+        .order("last_message_at", { ascending: false });
 
       if (convError) throw convError;
       if (!convData) return { data: [], error: null };
