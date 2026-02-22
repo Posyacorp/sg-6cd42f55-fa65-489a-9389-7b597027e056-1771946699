@@ -1,126 +1,120 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { authService } from "@/services/authService";
-import { adminService, type UserWithStats } from "@/services/adminService";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Search,
-  MoreVertical,
-  Ban,
-  CheckCircle,
-  Trash2,
-  Shield,
-  UserCog,
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  Search, 
+  MoreVertical, 
+  Shield, 
+  Ban, 
+  Trash2, 
+  UserCheck, 
+  Download, 
+  Mail, 
+  Filter, 
   RefreshCw,
+  Eye,
+  CheckSquare,
+  XSquare
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { adminService, type UserWithStats, type UserStatistics, type AdvancedFilters } from "@/services/adminService";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AdminUsersPage() {
-  const router = useRouter();
+  const { user: currentUser } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
   const [users, setUsers] = useState<UserWithStats[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<UserWithStats[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<UserStatistics | null>(null);
+  
+  // Selection & Bulk Actions
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
+  // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [dateRange, setDateRange] = useState({ from: "", to: "" });
+
+  // Dialog States
   const [selectedUser, setSelectedUser] = useState<UserWithStats | null>(null);
-  const [currentAdmin, setCurrentAdmin] = useState<any>(null);
-
-  // Dialog states
-  const [showRoleDialog, setShowRoleDialog] = useState(false);
-  const [showBanDialog, setShowBanDialog] = useState(false);
-  const [showSuspendDialog, setShowSuspendDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [newRole, setNewRole] = useState("");
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+  const [isBanDialogOpen, setIsBanDialogOpen] = useState(false);
+  const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [actionReason, setActionReason] = useState("");
-  const [actionLoading, setActionLoading] = useState(false);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
 
   useEffect(() => {
-    checkAuthAndLoadUsers();
-  }, []);
+    fetchData();
+  }, [searchTerm, roleFilter, statusFilter, dateRange]);
 
-  useEffect(() => {
-    applyFilters();
-  }, [users, searchTerm, roleFilter, statusFilter]);
-
-  const checkAuthAndLoadUsers = async () => {
-    try {
-      const { user, profile } = await authService.getCurrentUser();
-
-      if (!user || !profile) {
-        router.push("/auth/login");
-        return;
-      }
-
-      if (profile.role !== "admin") {
-        router.push(`/${profile.role}/dashboard`);
-        return;
-      }
-
-      setCurrentAdmin(profile);
-      await loadUsers();
-    } catch (error) {
-      console.error("Error checking auth:", error);
-      router.push("/auth/login");
-    }
-  };
-
-  const loadUsers = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const { data, error } = await adminService.getAllUsers();
+      const filters: AdvancedFilters = {
+        search: searchTerm,
+        role: roleFilter,
+        status: statusFilter,
+        joinDateFrom: dateRange.from || undefined,
+        joinDateTo: dateRange.to || undefined,
+      };
 
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load users. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
+      const [usersRes, statsRes] = await Promise.all([
+        adminService.getAllUsers(filters),
+        adminService.getDashboardStats()
+      ]);
 
-      setUsers(data || []);
+      if (usersRes.data) setUsers(usersRes.data);
+      if (statsRes.data) setStats(statsRes.data);
     } catch (error) {
-      console.error("Error loading users:", error);
+      console.error("Failed to fetch data", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred.",
+        description: "Failed to load users data",
         variant: "destructive",
       });
     } finally {
@@ -128,334 +122,307 @@ export default function AdminUsersPage() {
     }
   };
 
-  const applyFilters = () => {
-    let filtered = [...users];
-
-    // Role filter
-    if (roleFilter !== "all") {
-      filtered = filtered.filter((user) => user.role === roleFilter);
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedUsers(new Set(users.map(u => u.id)));
+    } else {
+      setSelectedUsers(new Set());
     }
-
-    // Status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((user) => user.status === statusFilter);
-    }
-
-    // Search filter
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (user) =>
-          user.email?.toLowerCase().includes(search) ||
-          user.full_name?.toLowerCase().includes(search)
-      );
-    }
-
-    setFilteredUsers(filtered);
   };
 
-  const handleChangeRole = async () => {
-    if (!selectedUser || !newRole || !currentAdmin) return;
+  const handleSelectUser = (userId: string, checked: boolean) => {
+    const newSelected = new Set(selectedUsers);
+    if (checked) newSelected.add(userId);
+    else newSelected.delete(userId);
+    setSelectedUsers(newSelected);
+  };
 
-    setActionLoading(true);
+  const handleBulkAction = async (action: 'ban' | 'suspend' | 'delete' | 'role', value?: string) => {
+    if (selectedUsers.size === 0 || !currentUser?.id) return;
+    
+    setIsBulkProcessing(true);
     try {
-      const { success, error } = await adminService.updateUserRole(
-        selectedUser.id,
-        newRole,
-        currentAdmin.id
-      );
+      const userIds = Array.from(selectedUsers);
+      let res;
 
-      if (error || !success) {
-        toast({
-          title: "Error",
-          description: "Failed to update user role.",
-          variant: "destructive",
-        });
-        return;
+      switch(action) {
+        case 'ban':
+          res = await adminService.bulkBanUsers(userIds, "Bulk ban by admin", currentUser.id);
+          break;
+        case 'suspend':
+          res = await adminService.bulkSuspendUsers(userIds, "Bulk suspend by admin", currentUser.id);
+          break;
+        case 'delete':
+          if (!confirm(`Are you sure you want to delete ${userIds.length} users?`)) {
+            setIsBulkProcessing(false);
+            return;
+          }
+          res = await adminService.bulkDeleteUsers(userIds, currentUser.id);
+          break;
       }
 
-      toast({
-        title: "Success",
-        description: `User role updated to ${newRole}.`,
-      });
-
-      setShowRoleDialog(false);
-      setNewRole("");
-      await loadUsers();
+      if (res && res.failed === 0) {
+        toast({ title: "Success", description: `Bulk action completed on ${res.success} users.` });
+        setSelectedUsers(new Set());
+        fetchData();
+      } else if (res) {
+        toast({ 
+          title: "Partial Success", 
+          description: `Succeeded: ${res.success}, Failed: ${res.failed}`,
+          variant: "destructive"
+        });
+      }
     } catch (error) {
-      console.error("Error changing role:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Bulk action failed", variant: "destructive" });
     } finally {
-      setActionLoading(false);
+      setIsBulkProcessing(false);
+    }
+  };
+
+  const handleRoleUpdate = async (newRole: string) => {
+    if (!selectedUser || !currentUser?.id) return;
+    const { error } = await adminService.updateUserRole(selectedUser.id, newRole, currentUser.id);
+    if (!error) {
+      toast({ title: "Success", description: "User role updated successfully" });
+      fetchData();
+      setIsRoleDialogOpen(false);
+    } else {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
   const handleBanUser = async () => {
-    if (!selectedUser || !actionReason || !currentAdmin) return;
-
-    setActionLoading(true);
-    try {
-      const { success, error } = await adminService.banUser(
-        selectedUser.id,
-        actionReason,
-        currentAdmin.id
-      );
-
-      if (error || !success) {
-        toast({
-          title: "Error",
-          description: "Failed to ban user.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Success",
-        description: "User has been banned.",
-      });
-
-      setShowBanDialog(false);
+    if (!selectedUser || !currentUser?.id) return;
+    const { error } = await adminService.banUser(selectedUser.id, actionReason, currentUser.id);
+    if (!error) {
+      toast({ title: "Success", description: "User banned successfully" });
+      fetchData();
+      setIsBanDialogOpen(false);
       setActionReason("");
-      await loadUsers();
-    } catch (error) {
-      console.error("Error banning user:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
-    } finally {
-      setActionLoading(false);
+    } else {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
   const handleUnbanUser = async (userId: string) => {
-    if (!currentAdmin) return;
-
-    try {
-      const { success, error } = await adminService.unbanUser(userId, currentAdmin.id);
-
-      if (error || !success) {
-        toast({
-          title: "Error",
-          description: "Failed to unban user.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Success",
-        description: "User has been unbanned.",
-      });
-
-      await loadUsers();
-    } catch (error) {
-      console.error("Error unbanning user:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
+    if (!currentUser?.id) return;
+    const { error } = await adminService.unbanUser(userId, currentUser.id);
+    if (!error) {
+      toast({ title: "Success", description: "User unbanned successfully" });
+      fetchData();
+    } else {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
   const handleSuspendUser = async () => {
-    if (!selectedUser || !actionReason || !currentAdmin) return;
-
-    setActionLoading(true);
-    try {
-      const { success, error } = await adminService.suspendUser(
-        selectedUser.id,
-        actionReason,
-        currentAdmin.id
-      );
-
-      if (error || !success) {
-        toast({
-          title: "Error",
-          description: "Failed to suspend user.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Success",
-        description: "User has been suspended.",
-      });
-
-      setShowSuspendDialog(false);
+    if (!selectedUser || !currentUser?.id) return;
+    const { error } = await adminService.suspendUser(selectedUser.id, actionReason, currentUser.id);
+    if (!error) {
+      toast({ title: "Success", description: "User suspended successfully" });
+      fetchData();
+      setIsSuspendDialogOpen(false);
       setActionReason("");
-      await loadUsers();
-    } catch (error) {
-      console.error("Error suspending user:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
-    } finally {
-      setActionLoading(false);
+    } else {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
-  const handleDeleteUser = async () => {
-    if (!selectedUser || !currentAdmin) return;
-
-    setActionLoading(true);
-    try {
-      const { success, error } = await adminService.deleteUser(
-        selectedUser.id,
-        currentAdmin.id
-      );
-
-      if (error || !success) {
-        toast({
-          title: "Error",
-          description: "Failed to delete user.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Success",
-        description: "User has been deleted.",
-      });
-
-      setShowDeleteDialog(false);
-      await loadUsers();
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
-    } finally {
-      setActionLoading(false);
+  const handleDeleteUser = async (user: UserWithStats) => {
+    if (!currentUser?.id || !confirm(`Are you sure you want to delete ${user.email}?`)) return;
+    const { error } = await adminService.deleteUser(user.id, currentUser.id);
+    if (!error) {
+      toast({ title: "Success", description: "User deleted successfully" });
+      fetchData();
+    } else {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
-  const getRoleBadgeColor = (role: string) => {
-    const colors: Record<string, string> = {
-      admin: "bg-red-500",
-      agency: "bg-purple-500",
-      anchor: "bg-blue-500",
-      user: "bg-green-500",
-    };
-    return colors[role] || "bg-gray-500";
+  const handleSendEmail = async () => {
+    if (!currentUser?.id) return;
+    const recipients = selectedUser ? [selectedUser.id] : Array.from(selectedUsers);
+    
+    if (recipients.length === 0) return;
+
+    const { error } = await adminService.sendEmailToUsers(recipients, emailSubject, emailMessage, currentUser.id);
+    
+    if (!error) {
+      toast({ title: "Success", description: `Email queued for ${recipients.length} users` });
+      setIsEmailDialogOpen(false);
+      setEmailSubject("");
+      setEmailMessage("");
+      if (!selectedUser) setSelectedUsers(new Set()); // Clear selection if bulk
+    } else {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
-  const getStatusBadgeColor = (status: string) => {
-    const colors: Record<string, string> = {
-      active: "bg-green-500",
-      banned: "bg-red-500",
-      suspended: "bg-orange-500",
-      deleted: "bg-gray-500",
+  const handleExport = async () => {
+    const filters: AdvancedFilters = {
+      search: searchTerm,
+      role: roleFilter,
+      status: statusFilter,
+      joinDateFrom: dateRange.from || undefined,
+      joinDateTo: dateRange.to || undefined,
     };
-    return colors[status] || "bg-gray-500";
+    
+    const { success, error } = await adminService.exportUsersToCSV(filters);
+    if (success) {
+      toast({ title: "Success", description: "Users exported to CSV" });
+    } else {
+      toast({ title: "Error", description: "Export failed", variant: "destructive" });
+    }
   };
-
-  if (loading) {
-    return (
-      <DashboardLayout role="admin">
-        <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-          <RefreshCw className="h-8 w-8 animate-spin text-purple-500" />
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout role="admin">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-            <p className="text-muted-foreground">
-              Manage all users, roles, and permissions
-            </p>
+            <p className="text-muted-foreground">Manage users, roles, and permissions.</p>
           </div>
-          <Button onClick={loadUsers} variant="outline">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+             <Button variant="outline" onClick={handleExport}>
+              <Download className="mr-2 h-4 w-4" /> Export CSV
+            </Button>
+            <Button onClick={() => { setSelectedUser(null); setIsEmailDialogOpen(true); }} disabled={selectedUsers.size === 0}>
+              <Mail className="mr-2 h-4 w-4" /> Email Selected ({selectedUsers.size})
+            </Button>
+          </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search by email or name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        {/* Stats Cards */}
+        {stats && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <UserCheck className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalUsers}</div>
+                <p className="text-xs text-muted-foreground">+{stats.newUsersToday} today</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+                <div className="h-2 w-2 rounded-full bg-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.activeUsers}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Suspended</CardTitle>
+                <div className="h-2 w-2 rounded-full bg-orange-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.suspendedUsers}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Banned</CardTitle>
+                <div className="h-2 w-2 rounded-full bg-red-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.bannedUsers}</div>
+              </CardContent>
+            </Card>
           </div>
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              <SelectItem value="user">User</SelectItem>
-              <SelectItem value="anchor">Anchor</SelectItem>
-              <SelectItem value="agency">Agency</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="suspended">Suspended</SelectItem>
-              <SelectItem value="banned">Banned</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        )}
 
-        {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <div className="rounded-lg border bg-card p-4">
-            <div className="text-sm text-muted-foreground">Total Users</div>
-            <div className="text-2xl font-bold">{users.length}</div>
-          </div>
-          <div className="rounded-lg border bg-card p-4">
-            <div className="text-sm text-muted-foreground">Active</div>
-            <div className="text-2xl font-bold text-green-500">
-              {users.filter((u) => u.status === "active").length}
+        {/* Filters & Actions */}
+        <Card>
+          <CardContent className="p-4 space-y-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search users by email or name..."
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="anchor">Anchor</SelectItem>
+                  <SelectItem value="agency">Agency</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
+                  <SelectItem value="banned">Banned</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="ghost" size="icon" onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}>
+                <Filter className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={fetchData}>
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
-          </div>
-          <div className="rounded-lg border bg-card p-4">
-            <div className="text-sm text-muted-foreground">Suspended</div>
-            <div className="text-2xl font-bold text-orange-500">
-              {users.filter((u) => u.status === "suspended").length}
-            </div>
-          </div>
-          <div className="rounded-lg border bg-card p-4">
-            <div className="text-sm text-muted-foreground">Banned</div>
-            <div className="text-2xl font-bold text-red-500">
-              {users.filter((u) => u.status === "banned").length}
-            </div>
-          </div>
-        </div>
+
+            {/* Advanced Filters */}
+            {showAdvancedFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t">
+                <div className="space-y-2">
+                  <span className="text-sm text-muted-foreground">Joined After</span>
+                  <Input type="date" value={dateRange.from} onChange={(e) => setDateRange({...dateRange, from: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <span className="text-sm text-muted-foreground">Joined Before</span>
+                  <Input type="date" value={dateRange.to} onChange={(e) => setDateRange({...dateRange, to: e.target.value})} />
+                </div>
+              </div>
+            )}
+
+            {/* Bulk Actions Bar */}
+            {selectedUsers.size > 0 && (
+              <div className="flex items-center gap-2 p-2 bg-muted rounded-md animate-in fade-in">
+                <span className="text-sm font-medium px-2">{selectedUsers.size} selected</span>
+                <Button size="sm" variant="destructive" onClick={() => handleBulkAction('ban')} disabled={isBulkProcessing}>
+                  Bulk Ban
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => handleBulkAction('suspend')} disabled={isBulkProcessing}>
+                  Bulk Suspend
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => handleBulkAction('delete')} disabled={isBulkProcessing}>
+                  Bulk Delete
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Users Table */}
-        <div className="rounded-lg border bg-card">
+        <div className="rounded-md border bg-card">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">
+                  <Checkbox 
+                    checked={users.length > 0 && selectedUsers.size === users.length}
+                    onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                  />
+                </TableHead>
                 <TableHead>User</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
@@ -464,97 +431,85 @@ export default function AdminUsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.length === 0 ? (
+              {loading && users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    No users found
-                  </TableCell>
+                  <TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell>
+                </TableRow>
+              ) : users.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">No users found.</TableCell>
                 </TableRow>
               ) : (
-                filteredUsers.map((user) => (
+                users.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
-                      <div>
-                        <div className="font-medium">{user.full_name || "N/A"}</div>
-                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                      <Checkbox 
+                        checked={selectedUsers.has(user.id)}
+                        onCheckedChange={(checked) => handleSelectUser(user.id, !!checked)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{user.full_name || "Unnamed"}</span>
+                        <span className="text-xs text-muted-foreground">{user.email}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getRoleBadgeColor(user.role || "user")}>
-                        {user.role || "user"}
+                      <Badge variant={
+                        user.role === 'admin' ? 'default' : 
+                        user.role === 'agency' ? 'secondary' : 
+                        user.role === 'anchor' ? 'outline' : 'secondary'
+                      }>
+                        {user.role}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={getStatusBadgeColor(user.status || "active")}
-                      >
-                        {user.status || "active"}
+                      <Badge variant={
+                        user.status === 'active' ? 'outline' : 
+                        user.status === 'banned' ? 'destructive' : 'secondary'
+                      } className={user.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' : ''}>
+                        {user.status || 'active'}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      {new Date(user.created_at || "").toLocaleDateString()}
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(user.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
+                          <Button variant="ghost" size="icon">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setNewRole(user.role || "user");
-                              setShowRoleDialog(true);
-                            }}
-                          >
-                            <UserCog className="mr-2 h-4 w-4" />
-                            Change Role
+                          <DropdownMenuItem onClick={() => router.push(`/admin/user/${user.id}`)}>
+                            <Eye className="mr-2 h-4 w-4" /> View Details
                           </DropdownMenuItem>
-                          {user.status === "banned" ? (
-                            <DropdownMenuItem
-                              onClick={() => handleUnbanUser(user.id)}
-                            >
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Unban User
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => { setSelectedUser(user); setIsRoleDialogOpen(true); }}>
+                            <Shield className="mr-2 h-4 w-4" /> Change Role
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSelectedUser(user); setIsEmailDialogOpen(true); }}>
+                            <Mail className="mr-2 h-4 w-4" /> Send Email
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {user.status === 'banned' ? (
+                            <DropdownMenuItem onClick={() => handleUnbanUser(user.id)}>
+                              <UserCheck className="mr-2 h-4 w-4" /> Unban User
                             </DropdownMenuItem>
                           ) : (
                             <>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setShowSuspendDialog(true);
-                                }}
-                              >
-                                <Shield className="mr-2 h-4 w-4" />
-                                Suspend User
+                              <DropdownMenuItem onClick={() => { setSelectedUser(user); setIsSuspendDialogOpen(true); }}>
+                                <Ban className="mr-2 h-4 w-4" /> Suspend
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setShowBanDialog(true);
-                                }}
-                                className="text-red-600"
-                              >
-                                <Ban className="mr-2 h-4 w-4" />
-                                Ban User
+                              <DropdownMenuItem className="text-destructive" onClick={() => { setSelectedUser(user); setIsBanDialogOpen(true); }}>
+                                <XSquare className="mr-2 h-4 w-4" /> Ban Permanently
                               </DropdownMenuItem>
                             </>
                           )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setShowDeleteDialog(true);
-                            }}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete User
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteUser(user)}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete Account
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -565,144 +520,108 @@ export default function AdminUsersPage() {
             </TableBody>
           </Table>
         </div>
-
-        {/* Change Role Dialog */}
-        <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Change User Role</DialogTitle>
-              <DialogDescription>
-                Update the role for {selectedUser?.email}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Select value={newRole} onValueChange={setNewRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select new role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="anchor">Anchor</SelectItem>
-                  <SelectItem value="agency">Agency</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowRoleDialog(false)}
-                disabled={actionLoading}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleChangeRole} disabled={actionLoading}>
-                {actionLoading ? "Updating..." : "Update Role"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Ban User Dialog */}
-        <Dialog open={showBanDialog} onOpenChange={setShowBanDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Ban User</DialogTitle>
-              <DialogDescription>
-                This will permanently ban {selectedUser?.email}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Textarea
-                placeholder="Reason for ban..."
-                value={actionReason}
-                onChange={(e) => setActionReason(e.target.value)}
-                rows={4}
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowBanDialog(false)}
-                disabled={actionLoading}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleBanUser}
-                disabled={actionLoading || !actionReason}
-              >
-                {actionLoading ? "Banning..." : "Ban User"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Suspend User Dialog */}
-        <Dialog open={showSuspendDialog} onOpenChange={setShowSuspendDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Suspend User</DialogTitle>
-              <DialogDescription>
-                Temporarily suspend {selectedUser?.email}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Textarea
-                placeholder="Reason for suspension..."
-                value={actionReason}
-                onChange={(e) => setActionReason(e.target.value)}
-                rows={4}
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowSuspendDialog(false)}
-                disabled={actionLoading}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSuspendUser}
-                disabled={actionLoading || !actionReason}
-              >
-                {actionLoading ? "Suspending..." : "Suspend User"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Delete User Dialog */}
-        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete User</DialogTitle>
-              <DialogDescription>
-                This action cannot be undone. This will permanently delete{" "}
-                {selectedUser?.email}
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setShowDeleteDialog(false)}
-                disabled={actionLoading}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteUser}
-                disabled={actionLoading}
-              >
-                {actionLoading ? "Deleting..." : "Delete User"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
+
+      {/* Dialogs */}
+      {/* Role Update Dialog */}
+      <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change User Role</DialogTitle>
+            <DialogDescription>
+              Select a new role for {selectedUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select onValueChange={handleRoleUpdate}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">User</SelectItem>
+                <SelectItem value="anchor">Anchor</SelectItem>
+                <SelectItem value="agency">Agency</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Ban Dialog */}
+      <Dialog open={isBanDialogOpen} onOpenChange={setIsBanDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ban User</DialogTitle>
+            <DialogDescription>
+              This will permanently ban {selectedUser?.email} from accessing the platform.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea 
+              placeholder="Reason for banning..." 
+              value={actionReason}
+              onChange={(e) => setActionReason(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsBanDialogOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleBanUser} disabled={!actionReason}>Ban User</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Suspend Dialog */}
+      <Dialog open={isSuspendDialogOpen} onOpenChange={setIsSuspendDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suspend User</DialogTitle>
+            <DialogDescription>
+              Temporarily suspend {selectedUser?.email}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea 
+              placeholder="Reason for suspension..." 
+              value={actionReason}
+              onChange={(e) => setActionReason(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSuspendDialogOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleSuspendUser} disabled={!actionReason}>Suspend User</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Dialog */}
+      <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send Email</DialogTitle>
+            <DialogDescription>
+              Send an email to {selectedUser ? selectedUser.email : `${selectedUsers.size} selected users`}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Input 
+              placeholder="Subject" 
+              value={emailSubject}
+              onChange={(e) => setEmailSubject(e.target.value)}
+            />
+            <Textarea 
+              placeholder="Message content..." 
+              value={emailMessage}
+              onChange={(e) => setEmailMessage(e.target.value)}
+              className="h-[150px]"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEmailDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSendEmail} disabled={!emailSubject || !emailMessage}>Send Email</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

@@ -6,7 +6,7 @@ type AdminAction = Database["public"]["Tables"]["admin_actions"]["Row"];
 type UserActivityLog = Database["public"]["Tables"]["user_activity_logs"]["Row"];
 type EmailNotification = Database["public"]["Tables"]["email_notifications"]["Row"];
 
-export interface UserWithDetails extends Profile {
+export interface UserWithStats extends Profile {
   total_activity_count?: number;
   last_activity?: string;
 }
