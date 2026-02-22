@@ -6,18 +6,22 @@ import { Calendar } from "lucide-react";
 
 interface InteractiveAreaChartProps {
   title: string;
+  description?: string;
   data: any[];
   dataKey: string;
   color?: string;
   gradientId?: string;
+  valuePrefix?: string;
 }
 
 export function InteractiveAreaChart({ 
   title, 
+  description,
   data, 
   dataKey,
   color = "#8b5cf6",
-  gradientId = "colorValue"
+  gradientId = "colorValue",
+  valuePrefix = ""
 }: InteractiveAreaChartProps) {
   const [dateRange, setDateRange] = useState<[number, number]>([0, data.length - 1]);
   const [showBrush, setShowBrush] = useState(false);
@@ -29,7 +33,7 @@ export function InteractiveAreaChart({
           <p className="font-semibold">{label}</p>
           <p className="text-sm">
             <span className="font-medium">{dataKey}:</span>{" "}
-            <span style={{ color }}>{payload[0].value.toLocaleString()}</span>
+            <span style={{ color }}>{valuePrefix}{payload[0].value.toLocaleString()}</span>
           </p>
         </div>
       );
@@ -40,7 +44,12 @@ export function InteractiveAreaChart({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{title}</CardTitle>
+        <div>
+          <CardTitle>{title}</CardTitle>
+          {description && (
+            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+          )}
+        </div>
         <Button
           variant="outline"
           size="sm"
