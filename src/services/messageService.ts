@@ -22,11 +22,11 @@ export const messageService = {
       // First get conversations
       // We cast to any to avoid TS2589 "Type instantiation is excessively deep" error
       // caused by complex generic inference in the .or() filter
-      const { data: convData, error: convError } = await (supabase
-        .from("conversations") as any)
+      const { data: convData, error: convError } = (await supabase
+        .from("conversations")
         .select("*")
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
-        .order("last_message_at", { ascending: false });
+        .order("last_message_at", { ascending: false })) as any;
 
       if (convError) throw convError;
       if (!convData) return { data: [], error: null };
