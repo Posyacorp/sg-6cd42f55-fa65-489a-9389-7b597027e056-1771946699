@@ -3,7 +3,6 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Message = Database["public"]["Tables"]["messages"]["Row"];
 type Conversation = Database["public"]["Tables"]["conversations"]["Row"];
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export interface ConversationWithUser extends Conversation {
   other_user?: {
@@ -19,21 +18,37 @@ export interface ConversationWithUser extends Conversation {
 export const messageService = {
   async getConversations(userId: string): Promise<{ data: ConversationWithUser[] | null; error: any }> {
     try {
-      // First get conversations
-      // We cast to any to avoid TS2589 "Type instantiation is excessively deep" error
-      // caused by complex generic inference in the .or() filter
-      const { data: convData, error: convError } = (await supabase
+      // Fetch conversations where user is user1
+      const { data: conv1, error: err1 } = await supabase
         .from("conversations")
         .select("*")
-        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
-        .order("last_message_at", { ascending: false })) as any;
+        .eq("user1_id", userId);
 
-      if (convError) throw convError;
-      if (!convData) return { data: [], error: null };
+      if (err1) throw err1;
+
+      // Fetch conversations where user is user2
+      const { data: conv2, error: err2 } = await supabase
+        .from("conversations")
+        .select("*")
+        .eq("user2_id", userId);
+
+      if (err2) throw err2;
+
+      // Combine and deduplicate
+      const allConversations = [...(conv1 || []), ...(conv2 || [])];
+      const uniqueConvs = Array.from(
+        new Map(allConversations.map(c => [c.id, c])).values()
+      ).sort((a, b) => {
+        const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+        const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+        return bTime - aTime;
+      });
+
+      if (uniqueConvs.length === 0) return { data: [], error: null };
 
       // Get all unique user IDs
       const userIds = new Set<string>();
-      convData.forEach(conv => {
+      uniqueConvs.forEach(conv => {
         userIds.add(conv.user1_id);
         userIds.add(conv.user2_id);
       });
@@ -50,7 +65,7 @@ export const messageService = {
       const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
       // Transform conversations
-      const conversations: ConversationWithUser[] = convData.map(conv => {
+      const conversations: ConversationWithUser[] = uniqueConvs.map(conv => {
         const otherUserId = conv.user1_id === userId ? conv.user2_id : conv.user1_id;
         const otherUser = profileMap.get(otherUserId);
         
@@ -121,30 +136,26 @@ export const messageService = {
   async createConversation(user1Id: string, user2Id: string): Promise<{ data: Conversation | null; error: any }> {
     try {
       // Check if conversation already exists (User 1 -> User 2)
-      let { data: existing, error: searchError } = await supabase
+      const { data: existing1, error: err1 } = await supabase
         .from("conversations")
         .select("*")
         .eq("user1_id", user1Id)
         .eq("user2_id", user2Id)
         .maybeSingle();
 
-      if (searchError) throw searchError;
-      if (existing) {
-        return { data: existing, error: null };
-      }
+      if (err1) throw err1;
+      if (existing1) return { data: existing1, error: null };
 
       // Check reverse direction (User 2 -> User 1)
-      ({ data: existing, error: searchError } = await supabase
+      const { data: existing2, error: err2 } = await supabase
         .from("conversations")
         .select("*")
         .eq("user1_id", user2Id)
         .eq("user2_id", user1Id)
-        .maybeSingle());
+        .maybeSingle();
 
-      if (searchError) throw searchError;
-      if (existing) {
-        return { data: existing, error: null };
-      }
+      if (err2) throw err2;
+      if (existing2) return { data: existing2, error: null };
 
       // Create new conversation
       const { data, error } = await supabase
@@ -183,14 +194,20 @@ export const messageService = {
 
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      const { data: conversations } = await supabase
+      // Get user's conversations
+      const { data: conv1 } = await supabase
         .from("conversations")
         .select("id")
-        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
+        .eq("user1_id", userId);
 
-      if (!conversations) return { data: 0, error: null };
+      const { data: conv2 } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("user2_id", userId);
 
-      const conversationIds = conversations.map(c => c.id);
+      const conversations = [...(conv1 || []), ...(conv2 || [])];
+      const conversationIds = Array.from(new Set(conversations.map(c => c.id)));
+
       if (conversationIds.length === 0) return { data: 0, error: null };
 
       const { count, error } = await supabase
