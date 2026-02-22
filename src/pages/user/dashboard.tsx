@@ -1,228 +1,193 @@
-import { SEO } from "@/components/SEO";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { walletService } from "@/services/walletService";
+import { referralService } from "@/services/referralService";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Coins, Gem, TrendingUp, Users, ArrowRight, Video, Gift } from "lucide-react";
-import { LineChart } from "@/components/charts/LineChart";
-import { AreaChart } from "@/components/charts/AreaChart";
-import { PieChart } from "@/components/charts/PieChart";
+import { Wallet, Gift, Users, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 export default function UserDashboard() {
-  // Mock spending data
-  const spendingData = [
-    { month: "Jan", amount: 120 },
-    { month: "Feb", amount: 280 },
-    { month: "Mar", amount: 190 },
-    { month: "Apr", amount: 340 },
-    { month: "May", amount: 450 },
-    { month: "Jun", amount: 380 },
-  ];
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [walletData, setWalletData] = useState({ coins: 0, beans: 0, reward_tokens: 0 });
+  const [referralStats, setReferralStats] = useState({ total: 0, earnings: 0 });
 
-  // Mock token rewards data
-  const rewardsData = [
-    { month: "Jan", tokens: 4800 },
-    { month: "Feb", tokens: 11200 },
-    { month: "Mar", tokens: 7600 },
-    { month: "Apr", tokens: 13600 },
-    { month: "May", tokens: 18000 },
-    { month: "Jun", tokens: 15200 },
-  ];
+  useEffect(() => {
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user]);
 
-  // Mock spending breakdown
-  const spendingBreakdown = [
-    { name: "Video Calls", value: 650 },
-    { name: "Virtual Gifts", value: 380 },
-    { name: "Messages", value: 220 },
-    { name: "Premium Features", value: 150 },
-  ];
+  const loadDashboardData = async () => {
+    if (!user) return;
 
-  const recentActivity = [
-    { type: "call", anchor: "Sarah K.", amount: 50, time: "2 hours ago" },
-    { type: "gift", anchor: "Mike R.", amount: 25, time: "5 hours ago" },
-    { type: "call", anchor: "Emma L.", amount: 75, time: "1 day ago" },
-  ];
+    try {
+      setLoading(true);
+
+      // Load wallet balance
+      const { data: wallet } = await walletService.getBalance(user.id);
+      if (wallet) {
+        setWalletData(wallet);
+      }
+
+      // Load referral stats
+      const { data: referrals } = await referralService.getReferrals(user.id);
+      const { data: earnings } = await referralService.getTotalReferralEarnings(user.id);
+      
+      setReferralStats({
+        total: referrals?.length || 0,
+        earnings: earnings || 0,
+      });
+    } catch (error) {
+      console.error("Error loading dashboard:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <>
-      <SEO 
-        title="User Dashboard - Pukaarly"
-        description="Manage your wallet, explore anchors, and track your activity"
-      />
-      <DashboardLayout role="user">
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Welcome Back!
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Here's what's happening with your account today.
-            </p>
-          </div>
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Welcome Section */}
+        <div>
+          <h1 className="text-3xl font-bold">Welcome back, {profile?.full_name || "User"}!</h1>
+          <p className="text-muted-foreground">Here's your account overview</p>
+        </div>
 
-          {/* Wallet Overview */}
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-transparent">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Coin Balance</CardTitle>
-                <Coins className="h-4 w-4 text-purple-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">2,450</div>
-                <p className="text-xs text-muted-foreground">
-                  +180 from last purchase
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-pink-500/20 bg-gradient-to-br from-pink-500/5 to-transparent">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Reward Tokens</CardTitle>
-                <Gem className="h-4 w-4 text-pink-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">15,280</div>
-                <p className="text-xs text-muted-foreground">
-                  40 tokens per $1 spent
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-transparent">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-                <TrendingUp className="h-4 w-4 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">$1,400</div>
-                <p className="text-xs text-muted-foreground">
-                  +12% from last month
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Charts Section */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Spending History</CardTitle>
-                <CardDescription>Your monthly spending over the last 6 months</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AreaChart
-                  title="Spending History"
-                  data={spendingData}
-                  dataKey="amount"
-                  color="#8b5cf6"
-                  xAxisKey="month"
-                  height={300}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Token Rewards Earned</CardTitle>
-                <CardDescription>Tokens accumulated from your spending</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <LineChart
-                  title="Token Rewards Earned"
-                  data={rewardsData}
-                  dataKeys={[{ key: "tokens", color: "#ec4899", name: "Tokens" }]}
-                  xAxisKey="month"
-                  height={300}
-                />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Spending Breakdown */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Spending Breakdown</CardTitle>
-                <CardDescription>Where your coins are going</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PieChart
-                  title="Spending Breakdown"
-                  data={spendingBreakdown}
-                  colors={["#8b5cf6", "#ec4899", "#3b82f6", "#10b981"]}
-                  height={300}
-                  innerRadius={60}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Your latest transactions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                      <div className="flex items-center gap-3">
-                        {activity.type === "call" ? (
-                          <div className="p-2 rounded-full bg-purple-500/10">
-                            <Video className="h-4 w-4 text-purple-500" />
-                          </div>
-                        ) : (
-                          <div className="p-2 rounded-full bg-pink-500/10">
-                            <Gift className="h-4 w-4 text-pink-500" />
-                          </div>
-                        )}
-                        <div>
-                          <p className="font-medium">{activity.anchor}</p>
-                          <p className="text-sm text-muted-foreground">{activity.time}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-purple-600">-{activity.amount} coins</p>
-                        <p className="text-xs text-muted-foreground">+{activity.amount * 40} tokens</p>
-                      </div>
-                    </div>
-                  ))}
-                  <Button variant="outline" className="w-full">
-                    View All Activity
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Quick Actions */}
+        {/* Wallet Overview */}
+        <div className="grid gap-4 md:grid-cols-3">
           <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Common tasks and features</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Coins Balance</CardTitle>
+              <Wallet className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <Button className="h-auto py-4 flex-col gap-2 bg-gradient-to-br from-purple-600 to-pink-600">
-                  <Coins className="h-5 w-5" />
-                  <span>Buy Coins</span>
+              <div className="text-2xl font-bold">{walletData.coins.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">Available for spending</p>
+              <Link href="/user/wallet">
+                <Button variant="link" className="px-0 mt-2">
+                  Manage Wallet <ArrowUpRight className="ml-1 h-4 w-4" />
                 </Button>
-                <Button variant="outline" className="h-auto py-4 flex-col gap-2">
-                  <Users className="h-5 w-5" />
-                  <span>Explore Anchors</span>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Beans Earned</CardTitle>
+              <Gift className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{walletData.beans.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">From gifts received</p>
+              <Link href="/user/wallet">
+                <Button variant="link" className="px-0 mt-2">
+                  View Transactions <ArrowUpRight className="ml-1 h-4 w-4" />
                 </Button>
-                <Button variant="outline" className="h-auto py-4 flex-col gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  <span>View Rewards</span>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Reward Tokens</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{walletData.reward_tokens.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">Cashback rewards</p>
+              <Link href="/user/withdraw">
+                <Button variant="link" className="px-0 mt-2">
+                  Withdraw <ArrowDownRight className="ml-1 h-4 w-4" />
                 </Button>
-                <Button variant="outline" className="h-auto py-4 flex-col gap-2">
-                  <Gift className="h-5 w-5" />
-                  <span>Send Gift</span>
-                </Button>
-              </div>
+              </Link>
             </CardContent>
           </Card>
         </div>
-      </DashboardLayout>
-    </>
+
+        {/* Referral Stats */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{referralStats.total}</div>
+              <p className="text-xs text-muted-foreground">Friends you've invited</p>
+              <Link href="/user/referrals">
+                <Button variant="link" className="px-0 mt-2">
+                  View Referrals <ArrowUpRight className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Referral Earnings</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{referralStats.earnings.toLocaleString()} tokens</div>
+              <p className="text-xs text-muted-foreground">From referral rewards</p>
+              <Link href="/user/referrals">
+                <Button variant="link" className="px-0 mt-2">
+                  Manage Referrals <ArrowUpRight className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-4">
+            <Link href="/user/explore">
+              <Button variant="outline" className="w-full">
+                Explore Anchors
+              </Button>
+            </Link>
+            <Link href="/user/messages">
+              <Button variant="outline" className="w-full">
+                Messages
+              </Button>
+            </Link>
+            <Link href="/user/wallet">
+              <Button variant="outline" className="w-full">
+                Add Coins
+              </Button>
+            </Link>
+            <Link href="/user/referrals">
+              <Button variant="outline" className="w-full">
+                Invite Friends
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
   );
 }

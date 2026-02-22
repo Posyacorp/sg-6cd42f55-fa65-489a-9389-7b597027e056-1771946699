@@ -1,180 +1,197 @@
-import { SEO } from "@/components/SEO";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { referralService } from "@/services/referralService";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { exportToCSV } from "@/lib/export";
-import { 
-  LayoutDashboard, 
-  Compass, 
-  MessageSquare, 
-  Wallet, 
-  User, 
-  Users, 
-  DollarSign,
-  Copy,
-  Share2,
-  TrendingUp,
-  Download
-} from "lucide-react";
+import { Users, Copy, CheckCircle, TrendingUp } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function UserReferrals() {
-  const referrals = [
-    { name: "Alice Johnson", joined: "2 days ago", earned: "$45", level: 1, status: "active" },
-    { name: "Bob Smith", joined: "1 week ago", earned: "$120", level: 1, status: "active" },
-    { name: "Carol White", joined: "2 weeks ago", earned: "$85", level: 1, status: "active" },
-    { name: "David Brown", joined: "3 weeks ago", earned: "$90", level: 1, status: "active" }
-  ];
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [referralCode, setReferralCode] = useState("");
+  const [referrals, setReferrals] = useState<any[]>([]);
+  const [earnings, setEarnings] = useState<any[]>([]);
+  const [totalEarnings, setTotalEarnings] = useState(0);
+  const [copied, setCopied] = useState(false);
 
-  const handleExport = () => {
-    exportToCSV(referrals, "referrals");
+  useEffect(() => {
+    if (user) {
+      loadReferralData();
+    }
+  }, [user]);
+
+  const loadReferralData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+
+      const { data: code } = await referralService.getReferralCode(user.id);
+      setReferralCode(code || "");
+
+      const { data: refs } = await referralService.getReferrals(user.id);
+      setReferrals(refs || []);
+
+      const { data: earns } = await referralService.getReferralEarnings(user.id);
+      setEarnings(earns || []);
+
+      const { data: total } = await referralService.getTotalReferralEarnings(user.id);
+      setTotalEarnings(total);
+    } catch (error) {
+      console.error("Error loading referral data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load referral data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const copyReferralLink = () => {
+    const link = `${window.location.origin}/auth/register?ref=${referralCode}`;
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    toast({
+      title: "Copied!",
+      description: "Referral link copied to clipboard",
+    });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const referralLink = `${typeof window !== "undefined" ? window.location.origin : ""}/auth/register?ref=${referralCode}`;
+
   return (
-    <>
-      <SEO title="Referrals - Pukaarly" />
-      <DashboardLayout role="user">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold">Referral Program</h1>
-            <p className="text-gray-600 dark:text-gray-400">Earn rewards by inviting friends</p>
-          </div>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Referral Program</h1>
+          <p className="text-muted-foreground">Invite friends and earn rewards</p>
+        </div>
 
-          {/* Referral Stats */}
-          <div className="grid md:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">23</div>
-                <p className="text-xs text-gray-500 mt-1">Active users</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total Earned</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">$340</div>
-                <p className="text-xs text-gray-500 mt-1">From referrals</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">This Month</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">$85</div>
-                <p className="text-xs text-gray-500 mt-1">+12% from last month</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">5</div>
-                <p className="text-xs text-gray-500 mt-1">Pending signups</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Referral Link */}
+        {/* Stats */}
+        <div className="grid gap-4 md:grid-cols-3">
           <Card>
-            <CardHeader>
-              <CardTitle>Your Referral Link</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <Input 
-                    readOnly 
-                    value="https://pukaarly.com/ref/JOHNDOE123" 
-                    className="font-mono"
-                  />
-                  <Button className="bg-gradient-to-r from-blue-600 to-cyan-600">
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy
-                  </Button>
-                  <Button variant="outline">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
-                  </Button>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Share this link with friends to earn 5% direct referral bonus + 5% from 10 levels deep!
-                </p>
-              </div>
+              <div className="text-2xl font-bold">{referrals.length}</div>
+              <p className="text-xs text-muted-foreground">Friends invited</p>
             </CardContent>
           </Card>
 
-          {/* Referral Structure */}
           <Card>
-            <CardHeader>
-              <CardTitle>Referral Structure</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div>
-                    <p className="font-semibold">Direct Referral (Level 1)</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">People you invite directly</p>
-                  </div>
-                  <Badge className="bg-blue-600">5% Bonus</Badge>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <div>
-                    <p className="font-semibold">Multi-Level (Levels 2-10)</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">People invited by your referrals</p>
-                  </div>
-                  <Badge className="bg-purple-600">5% Split</Badge>
-                </div>
-              </div>
+              <div className="text-2xl font-bold">{totalEarnings.toLocaleString()} tokens</div>
+              <p className="text-xs text-muted-foreground">From referrals</p>
             </CardContent>
           </Card>
 
-          {/* Referral List */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Your Referrals</CardTitle>
-                <Button onClick={handleExport} variant="outline" size="sm">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export CSV
-                </Button>
-              </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Your Referral Code</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {referrals.map((ref, i) => (
-                  <div key={i} className="flex items-center justify-between py-4 border-b last:border-0 border-gray-200 dark:border-gray-800">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-semibold">
-                        {ref.name.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-medium">{ref.name}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Joined {ref.joined}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <p className="font-semibold text-green-600">{ref.earned}</p>
-                        <p className="text-xs text-gray-500">Level {ref.level}</p>
-                      </div>
-                      <Badge variant={ref.status === "active" ? "default" : "secondary"}>
-                        {ref.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <div className="text-2xl font-bold font-mono">{referralCode}</div>
+              <p className="text-xs text-muted-foreground">Share with friends</p>
             </CardContent>
           </Card>
         </div>
-      </DashboardLayout>
-    </>
+
+        {/* Referral Link */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Referral Link</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input value={referralLink} readOnly className="font-mono text-sm" />
+              <Button onClick={copyReferralLink} variant={copied ? "default" : "outline"}>
+                {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Share this link with friends. When they register and spend, you both earn rewards!
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Referral List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Referrals</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {referrals.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No referrals yet. Start inviting friends!
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Level</TableHead>
+                    <TableHead>Joined</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {referrals.map((ref: any) => (
+                    <TableRow key={ref.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{ref.referred_user?.full_name || "User"}</p>
+                          <p className="text-sm text-muted-foreground">{ref.referred_user?.email}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">Level {ref.level}</Badge>
+                      </TableCell>
+                      <TableCell>{formatDate(ref.created_at)}</TableCell>
+                      <TableCell>
+                        <Badge variant="default" className="bg-green-500">Active</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
   );
 }
