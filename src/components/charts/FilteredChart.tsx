@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -8,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Filter, X, Download } from "lucide-react";
+import { CalendarIcon, Filter, X, Download, Share2, Link as LinkIcon, Copy } from "lucide-react";
 import { format, subDays, isAfter, isBefore, parseISO } from "date-fns";
 import {
   DropdownMenu,
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { exportToCSV, exportChartToPDF } from "@/lib/export";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface FilterOption {
   label: string;
@@ -63,6 +65,77 @@ export function FilteredChart({
   const [searchQuery, setSearchQuery] = useState("");
   const [comparisonMode, setComparisonMode] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  // Initialize from URL on mount
+  useEffect(() => {
+    if (!router.isReady) return;
+    
+    const { quickRange, categories, metrics, search, comparison } = router.query;
+    
+    if (quickRange && typeof quickRange === 'string') {
+      setQuickRange(quickRange);
+      applyQuickRange(quickRange);
+    }
+    
+    if (categories && typeof categories === 'string') {
+      setSelectedCategories(categories.split(','));
+    }
+    
+    if (metrics && typeof metrics === 'string') {
+      setSelectedMetrics(metrics.split(','));
+    }
+    
+    if (search && typeof search === 'string') {
+      setSearchQuery(search);
+    }
+    
+    if (comparison === 'true') {
+      setComparisonMode(true);
+    }
+  }, [router.isReady]);
+
+  // Sync state to URL
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    const query = { ...router.query };
+    
+    // Update query params based on state
+    if (quickRange !== "30d") query.quickRange = quickRange;
+    else delete query.quickRange;
+    
+    if (selectedCategories.length > 0) query.categories = selectedCategories.join(",");
+    else delete query.categories;
+    
+    if (selectedMetrics.length > 0) query.metrics = selectedMetrics.join(",");
+    else delete query.metrics;
+    
+    if (searchQuery) query.search = searchQuery;
+    else delete query.search;
+    
+    if (comparisonMode) query.comparison = "true";
+    else delete query.comparison;
+
+    // Avoid infinite loop by checking if query actually changed
+    const currentQueryString = JSON.stringify(router.query);
+    const newQueryString = JSON.stringify(query);
+
+    if (currentQueryString !== newQueryString) {
+      router.replace({ pathname: router.pathname, query }, undefined, { shallow: true });
+    }
+  }, [dateRange, quickRange, selectedCategories, selectedMetrics, searchQuery, comparisonMode, router.isReady]);
+
+  // Share handler
+  const handleCopyLink = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url);
+    toast({
+      title: "Link copied",
+      description: "Chart view URL copied to clipboard",
+    });
+  };
 
   // Apply quick date range
   const applyQuickRange = (range: string) => {
@@ -220,6 +293,29 @@ export function FilteredChart({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleExport("pdf")}>
                   Export as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Share Link Button */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleCopyLink}>
+                  <LinkIcon className="h-4 w-4 mr-2" />
+                  Copy Link
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                   // Placeholder for social share or mailto
+                   window.open(`mailto:?subject=Check out this chart&body=Here is the chart view: ${window.location.href}`);
+                }}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Email Link
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
