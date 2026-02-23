@@ -194,15 +194,12 @@ export const messageService = {
 
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      // Shadow supabase with any to break the deep type inference cycle
-      const sb: any = supabase;
-      // @ts-ignore - Suppress TS2589 for RPC call with complex generated types
-      const { data, error } = await sb.rpc("get_unread_message_count", {
+      const { data, error } = await (supabase as any).rpc("get_unread_message_count", {
         p_user_id: userId,
       });
 
       if (error) throw error;
-      return { data: data || 0, error: null };
+      return { data: (data as number) || 0, error: null };
     } catch (error) {
       console.error("Error getting unread count:", error);
       return { data: null, error };
