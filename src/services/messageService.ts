@@ -192,10 +192,12 @@ export const messageService = {
     }
   },
 
-  // @ts-ignore - Bypass TS2589 for RPC call with complex generated types
+  // @ts-expect-error - Bypass TS2589 for RPC call with complex generated types
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      const { data, error } = await supabase.rpc("get_unread_message_count", {
+      // Shadow supabase with any to break the deep type inference cycle
+      const sb: any = supabase;
+      const { data, error } = await sb.rpc("get_unread_message_count", {
         p_user_id: userId,
       });
 
