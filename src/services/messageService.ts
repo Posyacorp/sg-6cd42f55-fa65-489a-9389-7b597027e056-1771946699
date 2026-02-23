@@ -194,7 +194,9 @@ export const messageService = {
 
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      const { data, error } = await (supabase as any).rpc("get_unread_message_count", {
+      // Use a local any-typed variable to break the deep type inference chain completely
+      const sb: any = supabase;
+      const { data, error } = await sb.rpc("get_unread_message_count", {
         p_user_id: userId,
       });
 

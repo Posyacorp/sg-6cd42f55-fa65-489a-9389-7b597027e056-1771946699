@@ -10,12 +10,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRouter } from "next/router";
 import { Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState("user");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,6 +48,7 @@ export default function Register() {
         options: {
           data: {
             full_name: fullName,
+            role: role,
           },
         },
       });
@@ -154,6 +157,25 @@ export default function Register() {
                         required
                         disabled={isLoading}
                       />
+                    </motion.div>
+
+                    <motion.div 
+                      className="space-y-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.35 }}
+                    >
+                      <Label htmlFor="role">Account Type</Label>
+                      <Select value={role} onValueChange={setRole} disabled={isLoading}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select account type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">User (Viewer)</SelectItem>
+                          <SelectItem value="anchor">Anchor (Streamer)</SelectItem>
+                          <SelectItem value="agency">Agency (Manager)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </motion.div>
 
                     <motion.div 
