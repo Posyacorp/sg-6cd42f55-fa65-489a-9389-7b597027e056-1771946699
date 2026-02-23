@@ -196,12 +196,12 @@ export const messageService = {
     try {
       // Use a local any-typed variable to break the deep type inference chain completely
       const sb: any = supabase;
-      const { data, error } = await sb.rpc("get_unread_message_count", {
+      const result: any = await sb.rpc("get_unread_message_count", {
         p_user_id: userId,
       });
 
-      if (error) throw error;
-      return { data: (data as number) || 0, error: null };
+      if (result.error) throw result.error;
+      return { data: (result.data as number) || 0, error: null };
     } catch (error) {
       console.error("Error getting unread count:", error);
       return { data: null, error };
