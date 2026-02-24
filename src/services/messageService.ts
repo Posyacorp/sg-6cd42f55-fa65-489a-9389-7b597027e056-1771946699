@@ -195,6 +195,7 @@ export const messageService = {
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
       // Fetch all unread messages not sent by the user
+      // @ts-ignore - TS2589: Supabase generated types cause excessively deep type instantiation
       const { data: messages, error } = await supabase
         .from("messages")
         .select("id")
