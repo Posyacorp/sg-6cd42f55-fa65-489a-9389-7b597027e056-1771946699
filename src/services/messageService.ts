@@ -194,14 +194,16 @@ export const messageService = {
 
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      // Separate await to prevent TS2589
-      const promise: any = (supabase as any)
+      // Shadow supabase import to bypass TS2589
+      const supabase: any = (await import("@/integrations/supabase/client")).supabase;
+      
+      const promise = supabase
         .from("messages")
         .select("*", { count: "exact", head: true })
         .eq("is_read", false)
         .neq("sender_id", userId);
       
-      const result: any = await promise;
+      const result = await promise;
       const { count, error } = result;
 
       if (error) throw error;
