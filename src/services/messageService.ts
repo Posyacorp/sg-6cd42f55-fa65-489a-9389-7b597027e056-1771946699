@@ -196,6 +196,7 @@ export const messageService = {
     try {
       // Use a local any-typed variable to break the deep type inference chain completely
       const sb: any = supabase;
+      // @ts-ignore - Bypass TS2589 excessively deep type instantiation
       const result: any = await sb.rpc("get_unread_message_count", {
         p_user_id: userId,
       });
