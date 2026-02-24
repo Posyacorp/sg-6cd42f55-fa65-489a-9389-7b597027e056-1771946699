@@ -194,12 +194,15 @@ export const messageService = {
 
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      // Cast supabase to any to prevent TS2589 (excessively deep type instantiation)
-      const { count, error } = await (supabase as any)
+      // Separate await to prevent TS2589
+      const promise: any = (supabase as any)
         .from("messages")
         .select("*", { count: "exact", head: true })
         .eq("is_read", false)
         .neq("sender_id", userId);
+      
+      const result: any = await promise;
+      const { count, error } = result;
 
       if (error) throw error;
       return { data: count, error: null };
