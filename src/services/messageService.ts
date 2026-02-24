@@ -194,20 +194,15 @@ export const messageService = {
 
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
-      // Shadow supabase import to bypass TS2589
-      const supabase: any = (await import("@/integrations/supabase/client")).supabase;
-      
-      const promise = supabase
+      // Fetch all unread messages not sent by the user
+      const { data: messages, error } = await supabase
         .from("messages")
-        .select("*", { count: "exact", head: true })
+        .select("id")
         .eq("is_read", false)
         .neq("sender_id", userId);
-      
-      const result = await promise;
-      const { count, error } = result;
 
       if (error) throw error;
-      return { data: count, error: null };
+      return { data: messages?.length || 0, error: null };
     } catch (error) {
       console.error("Error getting unread count:", error);
       return { data: null, error };
