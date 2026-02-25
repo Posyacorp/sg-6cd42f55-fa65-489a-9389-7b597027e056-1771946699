@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
+import { PKBattleInterface } from "@/components/stream/PKBattleInterface";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,8 @@ import {
   Users,
   Gift,
   TrendingUp,
-  Loader2
+  Loader2,
+  Swords
 } from "lucide-react";
 import { streamService } from "@/services/streamService";
 import { useAuth } from "@/hooks/useAuth";
@@ -376,114 +378,136 @@ export default function GoLivePage() {
             )}
           </div>
 
-          {/* Stream Settings & Stats */}
-          <div className="space-y-4">
-            {/* Settings */}
-            {!isLive && (
+          {/* Stream Controls */}
+          <Card>
+            {/* Stream Settings & Stats */}
+            <div className="space-y-4">
+              {/* Settings */}
+              {!isLive && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Stream Settings</CardTitle>
+                    <CardDescription>Configure your live stream</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Stream Title *</Label>
+                      <Input
+                        id="title"
+                        placeholder="What's happening?"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        maxLength={100}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        placeholder="Tell viewers what to expect..."
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        rows={3}
+                        maxLength={500}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Stream Type</Label>
+                      <div className="flex gap-2">
+                        <Button
+                          variant={streamType === "video" ? "default" : "outline"}
+                          onClick={() => setStreamType("video")}
+                          className="flex-1"
+                        >
+                          <Video className="w-4 h-4 mr-2" />
+                          Video
+                        </Button>
+                        <Button
+                          variant={streamType === "audio" ? "default" : "outline"}
+                          onClick={() => setStreamType("audio")}
+                          className="flex-1"
+                        >
+                          <Mic className="w-4 h-4 mr-2" />
+                          Audio
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Live Stats */}
+              {isLive && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Live Stats</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm font-medium">Viewers</span>
+                      </div>
+                      <span className="text-2xl font-bold">{viewerCount}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Gift className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm font-medium">Coins</span>
+                      </div>
+                      <span className="text-2xl font-bold">{coinsReceived}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm font-medium">Engagement</span>
+                      </div>
+                      <Badge variant="secondary">High</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Tips */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Stream Settings</CardTitle>
-                  <CardDescription>Configure your live stream</CardDescription>
+                  <CardTitle>Pro Tips</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Stream Title *</Label>
-                    <Input
-                      id="title"
-                      placeholder="What's happening?"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      maxLength={100}
-                    />
-                  </div>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>• Use good lighting for better video quality</li>
+                    <li>• Test your audio before going live</li>
+                    <li>• Engage with viewers in chat</li>
+                    <li>• Stream during peak hours for more viewers</li>
+                    <li>• Create an interesting title</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Tell viewers what to expect..."
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows={3}
-                      maxLength={500}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Stream Type</Label>
-                    <div className="flex gap-2">
-                      <Button
-                        variant={streamType === "video" ? "default" : "outline"}
-                        onClick={() => setStreamType("video")}
-                        className="flex-1"
-                      >
-                        <Video className="w-4 h-4 mr-2" />
-                        Video
-                      </Button>
-                      <Button
-                        variant={streamType === "audio" ? "default" : "outline"}
-                        onClick={() => setStreamType("audio")}
-                        className="flex-1"
-                      >
-                        <Mic className="w-4 h-4 mr-2" />
-                        Audio
-                      </Button>
-                    </div>
-                  </div>
+            {/* PK Battle Interface */}
+            {isLive && currentStream && (
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Swords className="w-5 h-5" />
+                    PK Battle Arena
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <PKBattleInterface
+                    streamId={currentStream.id}
+                    anchorId={user?.id || ""}
+                    isAnchor={true}
+                  />
                 </CardContent>
               </Card>
             )}
-
-            {/* Live Stats */}
-            {isLive && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Live Stats</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-sm font-medium">Viewers</span>
-                    </div>
-                    <span className="text-2xl font-bold">{viewerCount}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Gift className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-sm font-medium">Coins</span>
-                    </div>
-                    <span className="text-2xl font-bold">{coinsReceived}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-sm font-medium">Engagement</span>
-                    </div>
-                    <Badge variant="secondary">High</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Tips */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Pro Tips</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Use good lighting for better video quality</li>
-                  <li>• Test your audio before going live</li>
-                  <li>• Engage with viewers in chat</li>
-                  <li>• Stream during peak hours for more viewers</li>
-                  <li>• Create an interesting title</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
+          </Card>
         </div>
 
         {/* Important Note */}

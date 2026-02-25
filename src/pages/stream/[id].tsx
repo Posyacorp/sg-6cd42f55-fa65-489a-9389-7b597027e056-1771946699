@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
+import { PKBattleInterface } from "@/components/stream/PKBattleInterface";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
@@ -194,59 +195,73 @@ export default function StreamPage() {
   return (
     <DashboardLayout role="user">
       <div className="grid lg:grid-cols-4 gap-6 h-[calc(100vh-8rem)]">
-        {/* Video Player */}
-        <div className="lg:col-span-3 space-y-4">
-          <Card className="overflow-hidden">
-            <div className="relative bg-black aspect-video">
-              <video
-                ref={videoRef}
-                src={stream.stream_url}
-                className="w-full h-full"
-                autoPlay
-                playsInline
+        {/* Main Content */}
+        <div className="lg:col-span-2">
+          {/* PK Battle Interface */}
+          {stream && (
+            <div className="mb-4">
+              <PKBattleInterface
+                streamId={stream.id}
+                anchorId={stream.user_id}
+                isAnchor={false}
               />
+            </div>
+          )}
 
-              {/* Video Controls Overlay */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="destructive" className="bg-red-500">
-                      LIVE
-                    </Badge>
-                    <div className="flex items-center gap-1 text-white">
-                      <Users className="w-4 h-4" />
-                      <span className="text-sm">{stream.viewer_count.toLocaleString()}</span>
+          {/* Video Player */}
+          <Card>
+            <CardContent className="p-0">
+              <div className="relative bg-black aspect-video">
+                <video
+                  ref={videoRef}
+                  src={stream.stream_url}
+                  className="w-full h-full"
+                  autoPlay
+                  playsInline
+                />
+
+                {/* Video Controls Overlay */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="destructive" className="bg-red-500">
+                        LIVE
+                      </Badge>
+                      <div className="flex items-center gap-1 text-white">
+                        <Users className="w-4 h-4" />
+                        <span className="text-sm">{stream.viewer_count.toLocaleString()}</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-white hover:bg-white/20"
-                      onClick={toggleMute}
-                    >
-                      {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-white hover:bg-white/20"
-                    >
-                      <Settings className="w-5 h-5" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-white hover:bg-white/20"
-                      onClick={toggleFullscreen}
-                    >
-                      <Maximize className="w-5 h-5" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-white hover:bg-white/20"
+                        onClick={toggleMute}
+                      >
+                        {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-white hover:bg-white/20"
+                      >
+                        <Settings className="w-5 h-5" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-white hover:bg-white/20"
+                        onClick={toggleFullscreen}
+                      >
+                        <Maximize className="w-5 h-5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </CardContent>
           </Card>
 
           {/* Stream Info */}
