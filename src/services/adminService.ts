@@ -564,4 +564,43 @@ export const adminService = {
       return { success: false, error };
     }
   },
+
+  async getUserAuthDetails(userId: string) {
+    try {
+      const { data, error } = await supabase.auth.admin.getUserById(userId);
+      if (error) throw error;
+      return { data: data.user, error: null };
+    } catch (error) {
+      console.error("Error fetching user auth details:", error);
+      return { data: null, error };
+    }
+  },
+
+  async updateUserStatus(
+    userId: string,
+    status: "active" | "suspended",
+    adminId: string,
+    reason?: string
+  ) {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", userId);
+
+      if (error) throw error;
+
+      // Log the action
+      await this.logAdminAction(adminId, "update_user_status", {
+        user_id: userId,
+        new_status: status,
+        reason: reason || "No reason provided",
+      });
+
+      return { error: null };
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      return { error };
+    }
+  },
 };
