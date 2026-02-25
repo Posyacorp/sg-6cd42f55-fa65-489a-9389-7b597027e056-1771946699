@@ -603,4 +603,169 @@ export const adminService = {
       return { error };
     }
   },
+
+  // ============ PROXY USER CREATION ============
+
+  async createProxyUsers(count: number, adminId: string) {
+    try {
+      const femaleNames = [
+        "Priya", "Ananya", "Diya", "Isha", "Kavya", "Meera", "Nisha", "Pooja", 
+        "Riya", "Sanya", "Tanya", "Vanya", "Zara", "Aisha", "Shruti", "Neha",
+        "Sakshi", "Simran", "Kriti", "Aditi", "Rhea", "Kiara", "Mira", "Sia"
+      ];
+
+      const lastNames = [
+        "Sharma", "Verma", "Singh", "Kumar", "Patel", "Reddy", "Nair", "Iyer",
+        "Joshi", "Kapoor", "Malhotra", "Chopra", "Gupta", "Agarwal", "Mehta"
+      ];
+
+      const createdUsers = [];
+      const errors = [];
+
+      for (let i = 0; i < count; i++) {
+        try {
+          // Generate random name
+          const firstName = femaleNames[Math.floor(Math.random() * femaleNames.length)];
+          const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+          const fullName = `${firstName} ${lastName}`;
+          
+          // Generate email
+          const randomNum = Math.floor(Math.random() * 10000);
+          const email = `${firstName.toLowerCase()}${randomNum}@pukaarly.app`;
+          
+          // Generate random age (21-35)
+          const age = Math.floor(Math.random() * 15) + 21;
+          
+          // Create auth user
+          const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+            email,
+            password: `Proxy${randomNum}!@#`,
+            email_confirm: true,
+            user_metadata: {
+              full_name: fullName,
+              role: "anchor",
+            },
+          });
+
+          if (authError) {
+            errors.push(`Failed to create auth for ${email}: ${authError.message}`);
+            continue;
+          }
+
+          // Create profile
+          const { data: profileData, error: profileError } = await supabase
+            .from("profiles")
+            .insert({
+              id: authData.user.id,
+              email,
+              full_name: fullName,
+              role: "anchor",
+              status: "active",
+              bio: `Hi! I'm ${firstName}, ${age} years old. Love connecting with new people! 💕`,
+              is_proxy: true,
+            })
+            .select()
+            .single();
+
+          if (profileError) {
+            errors.push(`Failed to create profile for ${email}: ${profileError.message}`);
+            continue;
+          }
+
+          // Create wallet
+          const { error: walletError } = await supabase
+            .from("wallets")
+            .insert({
+              user_id: authData.user.id,
+              coins_balance: 0,
+              diamonds_balance: 0,
+              beans_balance: 0,
+            });
+
+          if (walletError) {
+            errors.push(`Failed to create wallet for ${email}: ${walletError.message}`);
+          }
+
+          createdUsers.push({
+            id: authData.user.id,
+            email,
+            full_name: fullName,
+            password: `Proxy${randomNum}!@#`,
+          });
+        } catch (error: any) {
+          errors.push(`Unexpected error: ${error.message}`);
+        }
+      }
+
+      // Log admin action
+      await this.logAdminAction({
+        admin_id: adminId,
+        action_type: "create_proxy_users",
+        target_user_id: adminId,
+        details: {
+          count_requested: count,
+          count_created: createdUsers.length,
+          count_failed: errors.length,
+        },
+      });
+
+      return {
+        success: createdUsers.length > 0,
+        created: createdUsers,
+        errors,
+        summary: {
+          total: count,
+          created: createdUsers.length,
+          failed: errors.length,
+        },
+      };
+    } catch (error) {
+      console.error("Error creating proxy users:", error);
+      return {
+        success: false,
+        created: [],
+        errors: [error instanceof Error ? error.message : "Unknown error"],
+        summary: { total: count, created: 0, failed: count },
+      };
+    }
+  },
+
+  async getProxyUsers() {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("is_proxy", true)
+        .eq("role", "anchor")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error("Error getting proxy users:", error);
+      return { data: null, error };
+    }
+  },
+
+  async deleteProxyUser(userId: string, adminId: string) {
+    try {
+      // Delete from auth
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+      if (authError) throw authError;
+
+      // Profile will be deleted via CASCADE
+
+      await this.logAdminAction({
+        admin_id: adminId,
+        action_type: "delete_proxy_user",
+        target_user_id: userId,
+        details: {},
+      });
+
+      return { success: true, error: null };
+    } catch (error) {
+      console.error("Error deleting proxy user:", error);
+      return { success: false, error };
+    }
+  },
 };
