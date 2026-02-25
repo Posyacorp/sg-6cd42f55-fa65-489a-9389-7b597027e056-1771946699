@@ -1,52 +1,46 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
 
-type StreamStatus = Database["public"]["Enums"]["stream_status"];
-type StreamType = "video" | "audio" | "pk_battle";
-
+// Define strict types matching the database schema
 export interface Stream {
   id: string;
-  anchor_id: string;
-  title: string;
-  description: string;
-  thumbnail_url?: string;
-  stream_url?: string;
-  status: StreamStatus;
-  stream_type: StreamType;
+  user_id: string; // DB column is user_id
+  title: string | null;
+  description: string | null;
+  thumbnail_url: string | null;
+  stream_url: string | null;
+  status: "live" | "ended";
+  stream_type: "video" | "audio" | "pk_battle";
   viewer_count: number;
   total_coins_received: number;
-  started_at?: string;
-  ended_at?: string;
-  created_at: string;
-}
-
-export interface StreamViewer {
-  stream_id: string;
-  user_id: string;
-  joined_at: string;
-  left_at?: string;
-  total_coins_spent: number;
+  started_at: string | null;
+  ended_at: string | null;
+  created_at: string | null;
+  // Join fields
+  anchor?: {
+    full_name: string | null;
+    avatar_url: string | null;
+  };
 }
 
 export const streamService = {
   // ============ STREAM MANAGEMENT ============
 
-  async createStream(anchorId: string, streamData: {
+  async createStream(userId: string, streamData: {
     title: string;
     description?: string;
     thumbnail_url?: string;
-    stream_type?: StreamType;
+    stream_type?: "video" | "audio" | "pk_battle";
   }) {
     try {
       const { data, error } = await supabase
         .from("streams")
         .insert({
-          anchor_id: anchorId,
+          user_id: userId,
           title: streamData.title,
           description: streamData.description,
           thumbnail_url: streamData.thumbnail_url,
           stream_type: streamData.stream_type || "video",
-          status: "scheduled",
+          status: "live", // Auto-start for now as 'scheduled' isn't in DB constraint
           viewer_count: 0,
           total_coins_received: 0,
         })
@@ -108,7 +102,7 @@ export const streamService = {
         .from("streams")
         .select(`
           *,
-          anchor:profiles!anchor_id(
+          anchor:profiles!streams_user_id_fkey(
             full_name,
             avatar_url
           )
@@ -130,7 +124,7 @@ export const streamService = {
         .from("streams")
         .select(`
           *,
-          anchor:profiles!anchor_id(
+          anchor:profiles!streams_user_id_fkey(
             full_name,
             avatar_url
           )
@@ -160,9 +154,9 @@ export const streamService = {
           total_coins_spent: 0,
         });
 
-      if (viewerError && viewerError.code !== "23505") throw viewerError; // Ignore duplicate key errors
+      if (viewerError && viewerError.code !== "23505") throw viewerError; // Ignore duplicate key
 
-      // Increment viewer count
+      // Increment viewer count via RPC
       const { error: updateError } = await supabase.rpc("increment_viewer_count", {
         stream_id: streamId,
       });
@@ -189,7 +183,7 @@ export const streamService = {
 
       if (viewerError) throw viewerError;
 
-      // Decrement viewer count
+      // Decrement viewer count via RPC
       const { error: updateError } = await supabase.rpc("decrement_viewer_count", {
         stream_id: streamId,
       });

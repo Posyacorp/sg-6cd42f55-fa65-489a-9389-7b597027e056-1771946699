@@ -118,9 +118,10 @@ export default function StreamPage() {
     if (!user || !id) return;
 
     try {
+      // Note: In DB stream.user_id is the anchor
       await giftService.sendGift({
         sender_id: user.id,
-        receiver_id: stream.anchor_id,
+        receiver_id: stream.user_id, // Was stream.anchor_id, now stream.user_id
         gift_id: giftId,
         stream_id: id as string,
       });

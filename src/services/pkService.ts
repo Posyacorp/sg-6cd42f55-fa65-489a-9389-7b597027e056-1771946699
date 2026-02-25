@@ -2,26 +2,29 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface PKBattle {
   id: string;
-  anchor1_id: string;
-  anchor2_id: string;
+  inviter_id: string;
+  invitee_id: string;
   stream_id: string;
-  status: "pending" | "active" | "completed" | "cancelled";
-  anchor1_score: number;
-  anchor2_score: number;
+  status: "pending" | "active" | "ended" | "rejected";
+  inviter_score: number;
+  invitee_score: number;
   winner_id?: string;
-  started_at?: string;
-  ended_at?: string;
+  start_time?: string;
+  end_time?: string;
   duration_minutes: number;
   total_coins_received: number;
   created_at: string;
+  // Join fields
+  inviter?: { full_name: string; avatar_url: string };
+  invitee?: { full_name: string; avatar_url: string };
 }
 
 export const pkService = {
   // ============ PK BATTLE MANAGEMENT ============
 
   async createPKBattle(data: {
-    anchor1_id: string;
-    anchor2_id: string;
+    inviter_id: string;
+    invitee_id: string;
     stream_id: string;
     duration_minutes?: number;
   }) {
@@ -29,13 +32,13 @@ export const pkService = {
       const { data: battle, error } = await supabase
         .from("pk_battles")
         .insert({
-          anchor1_id: data.anchor1_id,
-          anchor2_id: data.anchor2_id,
+          inviter_id: data.inviter_id,
+          invitee_id: data.invitee_id,
           stream_id: data.stream_id,
           status: "pending",
-          anchor1_score: 0,
-          anchor2_score: 0,
-          duration_minutes: data.duration_minutes || 30,
+          inviter_score: 0,
+          invitee_score: 0,
+          duration_minutes: data.duration_minutes || 5,
           total_coins_received: 0,
         })
         .select()
@@ -55,7 +58,7 @@ export const pkService = {
         .from("pk_battles")
         .update({
           status: "active",
-          started_at: new Date().toISOString(),
+          start_time: new Date().toISOString(),
         })
         .eq("id", battleId)
         .select()
@@ -81,15 +84,15 @@ export const pkService = {
       if (fetchError) throw fetchError;
 
       // Determine winner
-      const winnerId = battle.anchor1_score > battle.anchor2_score
-        ? battle.anchor1_id
-        : battle.anchor2_id;
+      const winnerId = battle.inviter_score > battle.invitee_score
+        ? battle.inviter_id
+        : (battle.invitee_score > battle.inviter_score ? battle.invitee_id : null);
 
       const { data, error } = await supabase
         .from("pk_battles")
         .update({
-          status: "completed",
-          ended_at: new Date().toISOString(),
+          status: "ended",
+          end_time: new Date().toISOString(),
           winner_id: winnerId,
         })
         .eq("id", battleId)
@@ -104,7 +107,7 @@ export const pkService = {
     }
   },
 
-  async updatePKScore(battleId: string, anchorId: string, coinsReceived: number) {
+  async updatePKScore(battleId: string, userId: string, coinsReceived: number) {
     try {
       // Get current battle
       const { data: battle, error: fetchError } = await supabase
@@ -115,16 +118,16 @@ export const pkService = {
 
       if (fetchError) throw fetchError;
 
-      // Update appropriate anchor score
-      const updateData = anchorId === battle.anchor1_id
-        ? { anchor1_score: battle.anchor1_score + coinsReceived }
-        : { anchor2_score: battle.anchor2_score + coinsReceived };
+      // Update appropriate score
+      const updateData = userId === battle.inviter_id
+        ? { inviter_score: (battle.inviter_score || 0) + coinsReceived }
+        : { invitee_score: (battle.invitee_score || 0) + coinsReceived };
 
       const { data, error } = await supabase
         .from("pk_battles")
         .update({
           ...updateData,
-          total_coins_received: battle.total_coins_received + coinsReceived,
+          total_coins_received: (battle.total_coins_received || 0) + coinsReceived,
         })
         .eq("id", battleId)
         .select()
@@ -144,8 +147,8 @@ export const pkService = {
         .from("pk_battles")
         .select(`
           *,
-          anchor1:profiles!anchor1_id(full_name, avatar_url),
-          anchor2:profiles!anchor2_id(full_name, avatar_url)
+          inviter:profiles!pk_battles_inviter_id_fkey(full_name, avatar_url),
+          invitee:profiles!pk_battles_invitee_id_fkey(full_name, avatar_url)
         `)
         .eq("id", battleId)
         .single();
