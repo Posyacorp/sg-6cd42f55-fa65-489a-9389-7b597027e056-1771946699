@@ -184,7 +184,7 @@ export const pkService = {
             callbacks.onScoreUpdate(battle);
           }
 
-          if (battle.status === "completed" && callbacks.onBattleEnd && battle.winner_id) {
+          if (battle.status === "ended" && callbacks.onBattleEnd && battle.winner_id) {
             callbacks.onBattleEnd(battle.winner_id);
           }
         }
