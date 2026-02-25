@@ -195,7 +195,6 @@ export const messageService = {
   async getUnreadCount(userId: string): Promise<{ data: number | null; error: any }> {
     try {
       // Fetch all unread messages not sent by the user
-      // @ts-expect-error - Supabase client typing issue with filters
       const { data: messages, error } = await (supabase as any)
         .from("messages")
         .select("id")

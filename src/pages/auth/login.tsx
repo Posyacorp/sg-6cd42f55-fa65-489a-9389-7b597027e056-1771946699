@@ -17,11 +17,13 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showResendConfirmation, setShowResendConfirmation] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setShowResendConfirmation(false);
     setIsLoading(true);
 
     try {
@@ -30,7 +32,16 @@ export default function Login() {
         password,
       });
 
-      if (signInError) throw signInError;
+      if (signInError) {
+        // Check if error is due to unconfirmed email
+        if (signInError.message.toLowerCase().includes("email not confirmed")) {
+          setError("Please confirm your email address before logging in.");
+          setShowResendConfirmation(true);
+          setIsLoading(false);
+          return;
+        }
+        throw signInError;
+      }
 
       // Get user profile to check role
       const { data: profile } = await supabase
@@ -56,6 +67,33 @@ export default function Login() {
       }
     } catch (err: any) {
       setError(err.message || "Failed to login. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setError("Please enter your email address");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: email,
+      });
+
+      if (error) throw error;
+
+      setError("");
+      alert("Confirmation email sent! Please check your inbox.");
+      setShowResendConfirmation(false);
+    } catch (err: any) {
+      setError(err.message || "Failed to resend confirmation email");
     } finally {
       setIsLoading(false);
     }
