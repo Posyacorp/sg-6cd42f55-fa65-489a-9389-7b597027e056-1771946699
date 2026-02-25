@@ -1,47 +1,83 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import { useAuth } from "@/hooks/useAuth";
-import { messageService } from "@/services/messageService";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Search } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  Search, 
+  Send, 
+  Image as ImageIcon, 
+  Mic, 
+  Video, 
+  Phone, 
+  MoreVertical,
+  ArrowLeft 
+} from "lucide-react";
+import { messageService, type ConversationWithUser } from "@/services/messageService";
+import { useAuth } from "@/hooks/useAuth";
+import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import type { ConversationWithUser } from "@/services/messageService";
+import { useRouter } from "next/router";
 
-export default function UserMessages() {
+export default function MessagesPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState<ConversationWithUser[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [activeConversation, setActiveConversation] = useState<ConversationWithUser | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
-  const [messageText, setMessageText] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [newMessage, setNewMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const channelRef = useRef<any>(null);
 
+  // Load conversation list
   useEffect(() => {
     if (user) {
       loadConversations();
+      
+      // Subscribe to all new messages to update list
+      const sub = messageService.subscribeToAllMessages(user.id, (msg) => {
+        loadConversations(); // Refresh list on new message
+      });
+      
+      return () => {
+        messageService.unsubscribe(sub);
+      };
     }
   }, [user]);
 
+  // Load messages when conversation selected
   useEffect(() => {
-    if (selectedConversation) {
-      loadMessages(selectedConversation);
+    if (user && activeConversation) {
+      loadMessages(activeConversation.partner.id);
+      
+      // Subscribe to this specific conversation
+      if (channelRef.current) messageService.unsubscribe(channelRef.current);
+      
+      channelRef.current = messageService.subscribeToConversation(
+        user.id,
+        activeConversation.partner.id,
+        (msg) => {
+          setMessages((prev) => [...prev, msg]);
+          scrollToBottom();
+        }
+      );
     }
-  }, [selectedConversation]);
+    
+    return () => {
+      if (channelRef.current) messageService.unsubscribe(channelRef.current);
+    };
+  }, [activeConversation, user]);
 
   const loadConversations = async () => {
     if (!user) return;
-
     try {
-      setLoading(true);
-      const { data } = await messageService.getConversations(user.id);
-      if (data) {
-        setConversations(data);
-      }
+      const { data, error } = await messageService.getConversations(user.id);
+      if (error) throw error;
+      setConversations(data || []);
     } catch (error) {
       console.error("Error loading conversations:", error);
     } finally {
@@ -49,50 +85,69 @@ export default function UserMessages() {
     }
   };
 
-  const loadMessages = async (conversationId: string) => {
+  const loadMessages = async (partnerId: string) => {
+    if (!user) return;
     try {
-      const { data } = await messageService.getMessages(conversationId);
-      if (data) {
-        setMessages(data);
-        await messageService.markAsRead(conversationId, user!.id);
-      }
+      const { data, error } = await messageService.getMessages(user.id, partnerId);
+      if (error) throw error;
+      setMessages(data || []);
+      scrollToBottom();
     } catch (error) {
       console.error("Error loading messages:", error);
     }
   };
 
-  const sendMessage = async () => {
-    if (!messageText.trim() || !selectedConversation || !user) return;
-
-    try {
-      const { success } = await messageService.sendMessage(
-        selectedConversation,
-        user.id,
-        messageText
-      );
-
-      if (success) {
-        setMessageText("");
-        loadMessages(selectedConversation);
-        loadConversations();
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to send message",
-          variant: "destructive",
-        });
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollIntoView({ behavior: "smooth" });
       }
-    } catch (error) {
-      console.error("Error sending message:", error);
-    }
+    }, 100);
   };
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.other_user?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.other_user?.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !activeConversation || !newMessage.trim()) return;
 
-  const selectedConvData = conversations.find(c => c.id === selectedConversation);
+    const tempId = Date.now().toString();
+    const content = newMessage.trim();
+    
+    // Optimistic update
+    const optimisticMessage = {
+      id: tempId,
+      sender_id: user.id,
+      receiver_id: activeConversation.partner.id,
+      message_text: content,
+      created_at: new Date().toISOString(),
+      is_read: false,
+    };
+    
+    setMessages((prev) => [...prev, optimisticMessage]);
+    setNewMessage("");
+    scrollToBottom();
+
+    try {
+      const { success, error } = await messageService.sendMessage({
+        sender_id: user.id,
+        receiver_id: activeConversation.partner.id,
+        content: content,
+        message_type: "text",
+      });
+
+      if (!success) throw error;
+      
+      // Refresh conversation list to show latest message snippet
+      loadConversations();
+      
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send message",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (loading) {
     return (

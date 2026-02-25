@@ -4,6 +4,16 @@ import type { Database } from "@/integrations/supabase/types";
 type Message = Database["public"]["Tables"]["messages"]["Row"];
 type MessageInsert = Database["public"]["Tables"]["messages"]["Insert"];
 
+export interface ConversationWithUser {
+  partner: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  };
+  lastMessage: Message;
+  unreadCount: number;
+}
+
 export const messageService = {
   // ============ DIRECT MESSAGES ============
 
@@ -20,9 +30,9 @@ export const messageService = {
         .insert({
           sender_id: data.sender_id,
           receiver_id: data.receiver_id,
-          content: data.content,
+          message_text: data.content, // Map content to message_text
           message_type: data.message_type || "text",
-          media_url: data.media_url,
+          // media_url: data.media_url, // Column doesn't exist in schema!
           read_at: null,
         })
         .select()
@@ -36,7 +46,7 @@ export const messageService = {
     }
   },
 
-  async getConversation(
+  async getMessages( // Renamed from getConversation for clarity
     userId: string,
     otherUserId: string,
     limit: number = 50
@@ -46,7 +56,7 @@ export const messageService = {
         .from("messages")
         .select("*")
         .or(`and(sender_id.eq.${userId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${userId})`)
-        .order("created_at", { ascending: false })
+        .order("created_at", { ascending: true }) // Chat order
         .limit(limit);
 
       if (error) throw error;
@@ -57,9 +67,9 @@ export const messageService = {
     }
   },
 
-  async getConversationList(
+  async getConversations( // Renamed from getConversationList
     userId: string
-  ): Promise<{ success: boolean; data?: any[]; error?: any }> {
+  ): Promise<{ success: boolean; data?: ConversationWithUser[]; error?: any }> {
     try {
       // Get latest message with each user
       const { data, error } = await supabase
@@ -85,9 +95,9 @@ export const messageService = {
           conversations.set(partnerId, {
             partner: message.sender_id === userId ? message.receiver : message.sender,
             lastMessage: message,
-            unreadCount: message.receiver_id === userId && !message.read_at ? 1 : 0,
+            unreadCount: message.receiver_id === userId && !message.is_read ? 1 : 0, // is_read check
           });
-        } else if (message.receiver_id === userId && !message.read_at) {
+        } else if (message.receiver_id === userId && !message.is_read) {
           const conv = conversations.get(partnerId);
           conv.unreadCount++;
         }
