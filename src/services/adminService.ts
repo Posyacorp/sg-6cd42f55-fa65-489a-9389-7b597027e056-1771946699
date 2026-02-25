@@ -630,11 +630,11 @@ export const adminService = {
           const fullName = `${firstName} ${lastName}`;
           
           // Generate email
-          const randomNum = Math.floor(Math.random() * 10000);
+          const randomNum = Math.floor(Math.random() * 100000);
           const email = `${firstName.toLowerCase()}${randomNum}@pukaarly.app`;
           
-          // Generate random age (21-35)
-          const age = Math.floor(Math.random() * 15) + 21;
+          // Generate random age (18-28)
+          const age = Math.floor(Math.random() * 10) + 18;
           
           // Create auth user
           const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -652,8 +652,13 @@ export const adminService = {
             continue;
           }
 
+          if (!authData.user) {
+             errors.push(`No user returned for ${email}`);
+             continue;
+          }
+
           // Create profile
-          const { data: profileData, error: profileError } = await supabase
+          const { error: profileError } = await supabase
             .from("profiles")
             .insert({
               id: authData.user.id,
@@ -661,29 +666,48 @@ export const adminService = {
               full_name: fullName,
               role: "anchor",
               status: "active",
-              bio: `Hi! I'm ${firstName}, ${age} years old. Love connecting with new people! 💕`,
               is_proxy: true,
-            })
-            .select()
-            .single();
+            });
 
           if (profileError) {
             errors.push(`Failed to create profile for ${email}: ${profileError.message}`);
+            // Cleanup auth user if profile fails
+            await supabase.auth.admin.deleteUser(authData.user.id);
             continue;
+          }
+
+          // Create anchor profile with bio
+          const { error: anchorProfileError } = await supabase
+            .from("anchor_profiles")
+            .insert({
+              id: authData.user.id,
+              bio: `Hi! I'm ${firstName}, ${age} years old. Love connecting with new people! 💕`,
+              display_name: firstName,
+              call_price_per_minute: 10 + Math.floor(Math.random() * 20), // 10-30 coins
+              is_verified: true,
+              is_online: Math.random() > 0.5, // Randomly online
+              video_call_enabled: true,
+              voice_call_enabled: true
+            });
+            
+          if (anchorProfileError) {
+             console.error(`Failed to create anchor profile for ${email}:`, anchorProfileError);
+             // Non-fatal, continue
           }
 
           // Create wallet
           const { error: walletError } = await supabase
-            .from("wallets")
+            .from("wallet_balances")
             .insert({
               user_id: authData.user.id,
-              coins_balance: 0,
-              diamonds_balance: 0,
-              beans_balance: 0,
+              coins: 0,
+              beans: 0,
+              reward_tokens: 0,
             });
 
           if (walletError) {
-            errors.push(`Failed to create wallet for ${email}: ${walletError.message}`);
+            console.error(`Failed to create wallet for ${email}:`, walletError);
+             // Non-fatal
           }
 
           createdUsers.push({
@@ -700,7 +724,7 @@ export const adminService = {
       // Log admin action
       await this.logAdminAction({
         admin_id: adminId,
-        action_type: "create_proxy_users",
+        action_type: "create_proxy_users", // This action type needs to be added to check constraint if strict
         target_user_id: adminId,
         details: {
           count_requested: count,
