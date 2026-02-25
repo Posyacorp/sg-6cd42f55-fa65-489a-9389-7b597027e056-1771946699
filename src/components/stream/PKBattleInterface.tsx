@@ -30,7 +30,7 @@ export function PKBattleInterface({ streamId, anchorId, isAnchor = false }: PKBa
     if (!activeBattle) return;
 
     // Subscribe to real-time score updates
-    const subscription = pkService.subscribeToBattle(activeBattle.id, {
+    const subscription = pkService.subscribeToPKBattle(activeBattle.id, {
       onScoreUpdate: (battle) => {
         setActiveBattle(battle);
       },
@@ -40,7 +40,7 @@ export function PKBattleInterface({ streamId, anchorId, isAnchor = false }: PKBa
     });
 
     return () => {
-      pkService.unsubscribe(subscription);
+      pkService.unsubscribeFromPKBattle(subscription);
     };
   }, [activeBattle?.id]);
 
@@ -82,7 +82,12 @@ export function PKBattleInterface({ streamId, anchorId, isAnchor = false }: PKBa
   };
 
   const handleSendInvite = async (inviteeId: string) => {
-    const result = await pkService.createBattle(anchorId, inviteeId, streamId, 5);
+    const result = await pkService.createPKBattle({
+      inviter_id: anchorId,
+      invitee_id: inviteeId,
+      stream_id: streamId,
+      duration_minutes: 5
+    });
     if (result.success) {
       setShowInviteModal(false);
       await loadActiveBattle();

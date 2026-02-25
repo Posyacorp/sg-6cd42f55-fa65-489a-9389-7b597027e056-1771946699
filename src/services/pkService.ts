@@ -161,6 +161,51 @@ export const pkService = {
     }
   },
 
+  async getActiveBattle(streamId: string) {
+    try {
+      const { data, error } = await supabase
+        .from("pk_battles")
+        .select(`
+          *,
+          inviter:profiles!pk_battles_inviter_id_fkey(full_name, avatar_url),
+          invitee:profiles!pk_battles_invitee_id_fkey(full_name, avatar_url)
+        `)
+        .eq("stream_id", streamId)
+        .in("status", ["pending", "active"])
+        .maybeSingle();
+
+      if (error && error.code !== "PGRST116") throw error;
+      return { success: true, data };
+    } catch (error) {
+      console.error("Error fetching active battle:", error);
+      return { success: false, error };
+    }
+  },
+
+  async acceptBattle(battleId: string) {
+    return this.startPKBattle(battleId);
+  },
+
+  async rejectBattle(battleId: string) {
+    try {
+      const { data, error } = await supabase
+        .from("pk_battles")
+        .update({
+          status: "rejected",
+          end_time: new Date().toISOString(),
+        })
+        .eq("id", battleId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      console.error("Error rejecting PK battle:", error);
+      return { success: false, error };
+    }
+  },
+
   // ============ REALTIME SUBSCRIPTIONS ============
 
   subscribeToPKBattle(battleId: string, callbacks: {
