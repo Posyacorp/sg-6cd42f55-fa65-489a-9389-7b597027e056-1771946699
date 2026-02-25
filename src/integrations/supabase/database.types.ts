@@ -392,6 +392,7 @@ export type Database = {
           quantity: number | null
           receiver_id: string | null
           sender_id: string | null
+          stream_id: string | null
           total_beans: number
           total_coins: number
           transaction_id: string | null
@@ -404,6 +405,7 @@ export type Database = {
           quantity?: number | null
           receiver_id?: string | null
           sender_id?: string | null
+          stream_id?: string | null
           total_beans: number
           total_coins: number
           transaction_id?: string | null
@@ -416,6 +418,7 @@ export type Database = {
           quantity?: number | null
           receiver_id?: string | null
           sender_id?: string | null
+          stream_id?: string | null
           total_beans?: number
           total_coins?: number
           transaction_id?: string | null
@@ -440,6 +443,13 @@ export type Database = {
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gift_transactions_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "streams"
             referencedColumns: ["id"]
           },
           {

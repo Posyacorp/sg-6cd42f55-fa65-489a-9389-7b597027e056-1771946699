@@ -119,12 +119,13 @@ export default function StreamPage() {
 
     try {
       // Note: In DB stream.user_id is the anchor
-      await giftService.sendGift({
-        sender_id: user.id,
-        receiver_id: stream.user_id, // Was stream.anchor_id, now stream.user_id
-        gift_id: giftId,
-        stream_id: id as string,
-      });
+      await giftService.sendGift(
+        user.id,
+        stream.user_id, // Receiver ID
+        giftId,
+        1, // Quantity
+        id as string // Stream ID
+      );
       setShowGifts(false);
     } catch (error) {
       console.error("Error sending gift:", error);

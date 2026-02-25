@@ -27,7 +27,8 @@ export const giftService = {
     senderId: string,
     receiverId: string,
     giftId: string,
-    quantity: number = 1
+    quantity: number = 1,
+    streamId?: string
   ): Promise<{ success: boolean; error?: any }> {
     try {
       // Get gift details
@@ -74,6 +75,7 @@ export const giftService = {
         quantity,
         total_coins: totalCost,
         total_beans: beansValue,
+        stream_id: streamId || null,
         // transaction_id linked to one of the above would be ideal, skipping for now as optional
       });
 

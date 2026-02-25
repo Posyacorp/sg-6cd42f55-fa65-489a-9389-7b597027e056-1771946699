@@ -28,7 +28,7 @@ export default function ExplorePage() {
 
   const loadStreams = async () => {
     try {
-      const { data } = await streamService.getActiveStreams();
+      const { data } = await streamService.getLiveStreams();
       if (data) {
         setStreams(data);
       }
