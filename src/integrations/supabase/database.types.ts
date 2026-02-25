@@ -1,4 +1,4 @@
- 
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 export type Json =
   | string
   | number
@@ -541,6 +541,7 @@ export type Database = {
       pk_battles: {
         Row: {
           created_at: string | null
+          duration_minutes: number | null
           end_time: string | null
           id: string
           invitee_id: string
@@ -549,10 +550,13 @@ export type Database = {
           inviter_score: number | null
           start_time: string | null
           status: string | null
+          stream_id: string | null
+          total_coins_received: number | null
           winner_id: string | null
         }
         Insert: {
           created_at?: string | null
+          duration_minutes?: number | null
           end_time?: string | null
           id?: string
           invitee_id: string
@@ -561,10 +565,13 @@ export type Database = {
           inviter_score?: number | null
           start_time?: string | null
           status?: string | null
+          stream_id?: string | null
+          total_coins_received?: number | null
           winner_id?: string | null
         }
         Update: {
           created_at?: string | null
+          duration_minutes?: number | null
           end_time?: string | null
           id?: string
           invitee_id?: string
@@ -573,6 +580,8 @@ export type Database = {
           inviter_score?: number | null
           start_time?: string | null
           status?: string | null
+          stream_id?: string | null
+          total_coins_received?: number | null
           winner_id?: string | null
         }
         Relationships: [
@@ -588,6 +597,13 @@ export type Database = {
             columns: ["inviter_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pk_battles_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "streams"
             referencedColumns: ["id"]
           },
           {
@@ -758,34 +774,91 @@ export type Database = {
           },
         ]
       }
+      stream_viewers: {
+        Row: {
+          id: string
+          joined_at: string | null
+          left_at: string | null
+          stream_id: string
+          total_coins_spent: number | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          stream_id: string
+          total_coins_spent?: number | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          stream_id?: string
+          total_coins_spent?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stream_viewers_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "streams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stream_viewers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       streams: {
         Row: {
+          created_at: string | null
+          description: string | null
           ended_at: string | null
           id: string
           started_at: string | null
           status: string | null
+          stream_type: string | null
+          stream_url: string | null
           thumbnail_url: string | null
           title: string | null
+          total_coins_received: number | null
           user_id: string
           viewer_count: number | null
         }
         Insert: {
+          created_at?: string | null
+          description?: string | null
           ended_at?: string | null
           id?: string
           started_at?: string | null
           status?: string | null
+          stream_type?: string | null
+          stream_url?: string | null
           thumbnail_url?: string | null
           title?: string | null
+          total_coins_received?: number | null
           user_id: string
           viewer_count?: number | null
         }
         Update: {
+          created_at?: string | null
+          description?: string | null
           ended_at?: string | null
           id?: string
           started_at?: string | null
           status?: string | null
+          stream_type?: string | null
+          stream_url?: string | null
           thumbnail_url?: string | null
           title?: string | null
+          total_coins_received?: number | null
           user_id?: string
           viewer_count?: number | null
         }
@@ -1003,7 +1076,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decrement_viewer_count: {
+        Args: { stream_id: string }
+        Returns: undefined
+      }
       get_unread_message_count: { Args: { p_user_id: string }; Returns: number }
+      increment_viewer_count: {
+        Args: { stream_id: string }
+        Returns: undefined
+      }
       update_wallet_balance: {
         Args: { p_amount: number; p_currency: string; p_user_id: string }
         Returns: undefined
