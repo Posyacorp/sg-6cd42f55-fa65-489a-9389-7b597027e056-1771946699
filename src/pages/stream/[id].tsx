@@ -32,6 +32,8 @@ export default function StreamPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [gifts, setGifts] = useState<any[]>([]);
   const [showGifts, setShowGifts] = useState(false);
+  const [viewers, setViewers] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<"chat" | "viewers">("chat");
   const videoRef = useRef<HTMLVideoElement>(null);
   const channelRef = useRef<any>(null);
 
@@ -39,6 +41,7 @@ export default function StreamPage() {
     if (id && typeof id === "string") {
       loadStream(id);
       loadGifts();
+      loadViewers(id);
       
       // Join stream as viewer
       if (user) {
@@ -49,6 +52,8 @@ export default function StreamPage() {
       channelRef.current = streamService.subscribeToStream(id, {
         onViewerCountChange: (count) => {
           setStream((prev: any) => prev ? { ...prev, viewer_count: count } : null);
+          // Reload viewers when count changes
+          loadViewers(id);
         },
         onGiftReceived: (gift) => {
           // Add gift animation here
@@ -93,6 +98,17 @@ export default function StreamPage() {
       }
     } catch (error) {
       console.error("Error loading gifts:", error);
+    }
+  };
+
+  const loadViewers = async (streamId: string) => {
+    try {
+      const { data } = await streamService.getStreamViewers(streamId);
+      if (data) {
+        setViewers(data);
+      }
+    } catch (error) {
+      console.error("Error loading viewers:", error);
     }
   };
 
@@ -270,31 +286,93 @@ export default function StreamPage() {
           {/* Live Chat */}
           <Card className="flex flex-col h-[60vh]">
             <div className="border-b p-4">
-              <h3 className="font-semibold">Live Chat</h3>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setActiveTab("chat")}
+                  className={`font-semibold pb-2 border-b-2 transition-colors ${
+                    activeTab === "chat"
+                      ? "border-purple-600 text-purple-600"
+                      : "border-transparent text-gray-500"
+                  }`}
+                >
+                  Live Chat
+                </button>
+                <button
+                  onClick={() => setActiveTab("viewers")}
+                  className={`font-semibold pb-2 border-b-2 transition-colors ${
+                    activeTab === "viewers"
+                      ? "border-purple-600 text-purple-600"
+                      : "border-transparent text-gray-500"
+                  }`}
+                >
+                  Viewers ({stream?.viewer_count || 0})
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map((msg) => (
-                <div key={msg.id} className="text-sm">
-                  <span className="font-semibold text-purple-600">{msg.user}: </span>
-                  <span className="text-gray-700 dark:text-gray-300">{msg.message}</span>
-                </div>
-              ))}
+              {activeTab === "chat" ? (
+                <>
+                  {messages.map((msg) => (
+                    <div key={msg.id} className="text-sm">
+                      <span className="font-semibold text-purple-600">{msg.user}: </span>
+                      <span className="text-gray-700 dark:text-gray-300">{msg.message}</span>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <>
+                  {viewers.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">
+                      No active viewers
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {viewers.map((viewer) => (
+                        <div key={viewer.user_id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
+                              {viewer.profile?.full_name?.charAt(0) || "?"}
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">
+                                {viewer.profile?.full_name || "Anonymous"}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {viewer.total_coins_spent > 0 
+                                  ? `${viewer.total_coins_spent} coins spent`
+                                  : "Watching"}
+                              </p>
+                            </div>
+                          </div>
+                          {viewer.total_coins_spent > 0 && (
+                            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                              Top Fan
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
-            <form onSubmit={handleSendMessage} className="border-t p-4">
-              <div className="flex gap-2">
-                <Input
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Send a message..."
-                  className="flex-1"
-                />
-                <Button type="submit" size="sm">
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-            </form>
+            {activeTab === "chat" && (
+              <form onSubmit={handleSendMessage} className="border-t p-4">
+                <div className="flex gap-2">
+                  <Input
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Send a message..."
+                    className="flex-1"
+                  />
+                  <Button type="submit" size="sm">
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+              </form>
+            )}
           </Card>
 
           {/* Send Gift */}

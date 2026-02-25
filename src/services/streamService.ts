@@ -140,6 +140,30 @@ export const streamService = {
     }
   },
 
+  async getStreamViewers(streamId: string) {
+    try {
+      const { data, error } = await supabase
+        .from("stream_viewers")
+        .select(`
+          *,
+          profile:profiles!stream_viewers_user_id_fkey(
+            id,
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq("stream_id", streamId)
+        .is("left_at", null)
+        .order("total_coins_spent", { ascending: false });
+
+      if (error) throw error;
+      return { success: true, data: data || [] };
+    } catch (error) {
+      console.error("Error fetching stream viewers:", error);
+      return { success: false, data: [], error };
+    }
+  },
+
   // ============ VIEWER MANAGEMENT ============
 
   async joinStream(streamId: string, userId: string) {
