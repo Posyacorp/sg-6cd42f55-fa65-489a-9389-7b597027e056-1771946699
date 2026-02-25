@@ -60,12 +60,12 @@ export default function SetupAdminPage() {
 
       // Step 3: Initialize wallet
       const { error: walletError } = await supabase
-        .from('wallets')
+        .from('wallet_balances')
         .insert({
           user_id: authData.user.id,
-          coins_balance: 10000,
-          beans_balance: 0,
-          tokens_balance: 0
+          coins: 10000,
+          beans: 0,
+          reward_tokens: 0
         });
 
       if (walletError) {
