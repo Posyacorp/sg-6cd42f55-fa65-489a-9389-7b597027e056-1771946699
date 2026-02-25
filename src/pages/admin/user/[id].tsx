@@ -16,7 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, ArrowLeft, User, Wallet, Users, Activity, Edit, Trash2, Ban, CheckCircle, DollarSign, TrendingUp, Mail, Phone, Calendar, Shield } from "lucide-react";
+import { Loader2, ArrowLeft, User, Wallet, Users, Activity, Edit, Trash2, Ban, CheckCircle, DollarSign, TrendingUp, Mail, Calendar, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { LineChart } from "@/components/charts/LineChart";
@@ -103,10 +103,10 @@ export default function AdminUserDetail() {
   };
 
   const handleUpdateRole = async () => {
-    if (!id || typeof id !== "string" || !newRole) return;
+    if (!id || typeof id !== "string" || !newRole || !currentUser) return;
 
     try {
-      const { error } = await adminService.updateUserRole(id, newRole as any);
+      const { error } = await adminService.updateUserRole(id, newRole, currentUser.id);
       if (error) throw error;
 
       toast({
@@ -154,10 +154,10 @@ export default function AdminUserDetail() {
   };
 
   const handleDeleteUser = async () => {
-    if (!id || typeof id !== "string") return;
+    if (!id || typeof id !== "string" || !currentUser) return;
 
     try {
-      const { error } = await adminService.deleteUser(id);
+      const { error } = await adminService.deleteUser(id, currentUser.id);
       if (error) throw error;
 
       toast({
@@ -256,11 +256,7 @@ export default function AdminUserDetail() {
                   <span className="text-muted-foreground">Email:</span>
                   <span className="font-medium">{userProfile.email || "N/A"}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Phone:</span>
-                  <span className="font-medium">{userProfile.phone || "N/A"}</span>
-                </div>
+                {/* Phone field removed as it does not exist in profile schema */}
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Joined:</span>
