@@ -20,6 +20,13 @@ import {
   CheckCircle,
   User as UserIcon
 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { NotificationSettings } from "@/components/profile/NotificationSettings";
+import { PrivacySettings } from "@/components/profile/PrivacySettings";
+import { SocialLinks } from "@/components/profile/SocialLinks";
+import { useAuth } from "@/hooks/useAuth";
+import { Mail, Phone, Calendar, Activity, User, Settings, Bell, Lock, Globe } from "lucide-react";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
@@ -302,220 +309,256 @@ export default function UserProfile() {
 
   return (
     <>
-      <SEO title="Profile - Pukaarly" />
+      <SEO
+        title="My Profile - Pukaarly"
+        description="Manage your profile settings and preferences"
+      />
       <DashboardLayout role="user">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Profile Settings</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage your account information</p>
+        <div className="p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                My Profile
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Manage your account settings and preferences
+              </p>
+            </div>
           </div>
 
-          {/* Profile Picture */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Picture</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-6">
-                {profile.avatar_url ? (
-                  <img 
-                    src={profile.avatar_url} 
-                    alt={profile.full_name || "Profile"} 
-                    className="w-24 h-24 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
-                  />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white text-3xl font-bold">
-                    {formData.full_name ? getInitials(formData.full_name) : <UserIcon className="w-12 h-12" />}
-                  </div>
-                )}
-                <div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handlePhotoUpload}
-                  />
-                  <Button 
-                    className="bg-gradient-to-r from-blue-600 to-cyan-600"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingPhoto}
-                  >
-                    {uploadingPhoto ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Camera className="w-4 h-4 mr-2" />
-                        Change Photo
-                      </>
-                    )}
-                  </Button>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    JPG, PNG or GIF. Max size 2MB.
-                  </p>
-                </div>
+          <Tabs defaultValue="profile" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-5 lg:w-auto">
+              <TabsTrigger value="profile" className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="flex items-center gap-2">
+                <Bell className="w-4 h-4" />
+                <span className="hidden sm:inline">Notifications</span>
+              </TabsTrigger>
+              <TabsTrigger value="privacy" className="flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                <span className="hidden sm:inline">Privacy</span>
+              </TabsTrigger>
+              <TabsTrigger value="social" className="flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                <span className="hidden sm:inline">Social</span>
+              </TabsTrigger>
+              <TabsTrigger value="security" className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Security</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="profile" className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-3">
+                <Card className="md:col-span-1">
+                  <CardHeader>
+                    <CardTitle>Profile Picture</CardTitle>
+                    <CardDescription>Update your profile photo</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col items-center gap-4">
+                    <Avatar className="w-32 h-32">
+                      <AvatarImage src={profile?.avatar_url || ""} />
+                      <AvatarFallback className="text-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                        {profile?.full_name?.charAt(0) || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <Button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="w-full"
+                    >
+                      <Camera className="w-4 h-4 mr-2" />
+                      {uploading ? "Uploading..." : "Change Photo"}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="md:col-span-2">
+                  <CardHeader>
+                    <CardTitle>Personal Information</CardTitle>
+                    <CardDescription>Update your personal details</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="full_name">Full Name</Label>
+                        <Input
+                          id="full_name"
+                          value={formData.full_name}
+                          onChange={(e) =>
+                            setFormData({ ...formData, full_name: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="email"
+                            value={formData.email}
+                            disabled
+                            className="pl-10 bg-gray-50"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="phone"
+                            value={formData.phone}
+                            onChange={(e) =>
+                              setFormData({ ...formData, phone: e.target.value })
+                            }
+                            placeholder="+1 (555) 000-0000"
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Member Since</Label>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            value={
+                              profile?.created_at
+                                ? new Date(profile.created_at).toLocaleDateString()
+                                : ""
+                            }
+                            disabled
+                            className="pl-10 bg-gray-50"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bio">Bio</Label>
+                      <Textarea
+                        id="bio"
+                        value={formData.bio}
+                        onChange={(e) =>
+                          setFormData({ ...formData, bio: e.target.value })
+                        }
+                        placeholder="Tell us about yourself..."
+                        rows={4}
+                      />
+                    </div>
+                    <Button onClick={handleSaveProfile} disabled={saving} className="w-full">
+                      {saving ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Personal Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSaveProfile} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Account Statistics</CardTitle>
+                  <CardDescription>Your account activity overview</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                        <Calendar className="w-4 h-4" />
+                        Member Since
+                      </div>
+                      <div className="text-2xl font-bold">
+                        {profile?.created_at
+                          ? new Date(profile.created_at).toLocaleDateString()
+                          : "-"}
+                      </div>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                        <Activity className="w-4 h-4" />
+                        Total Sessions
+                      </div>
+                      <div className="text-2xl font-bold">{stats.totalSessions}</div>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                        <User className="w-4 h-4" />
+                        Account Status
+                      </div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {stats.accountStatus}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="notifications">
+              <NotificationSettings userId={user?.id || ""} />
+            </TabsContent>
+
+            <TabsContent value="privacy">
+              <PrivacySettings userId={user?.id || ""} />
+            </TabsContent>
+
+            <TabsContent value="social">
+              <SocialLinks userId={user?.id || ""} />
+            </TabsContent>
+
+            <TabsContent value="security" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Change Password</CardTitle>
+                  <CardDescription>Update your account password</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="full_name">Full Name</Label>
-                    <Input 
-                      id="full_name" 
-                      name="full_name"
-                      value={formData.full_name}
-                      onChange={handleInputChange}
+                    <Label htmlFor="current_password">Current Password</Label>
+                    <Input
+                      id="current_password"
+                      type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) =>
+                        setPasswordData({ ...passwordData, currentPassword: e.target.value })
+                      }
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      name="email"
-                      type="email" 
-                      value={formData.email}
-                      disabled
-                      className="bg-gray-100 dark:bg-gray-800"
-                    />
-                    <p className="text-xs text-gray-500">Email cannot be changed</p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input 
-                    id="phone" 
-                    name="phone"
-                    type="tel" 
-                    placeholder="+1 (555) 000-0000"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea 
-                    id="bio" 
-                    name="bio"
-                    placeholder="Tell us about yourself..." 
-                    rows={4}
-                    value={formData.bio}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <Button 
-                  type="submit"
-                  className="bg-gradient-to-r from-blue-600 to-cyan-600"
-                  disabled={saving}
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Account Security */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Security</CardTitle>
-              <CardDescription>Change your password</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleChangePassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <Input 
-                    id="currentPassword" 
-                    name="currentPassword"
-                    type="password"
-                    value={passwordData.currentPassword}
-                    onChange={handlePasswordChange}
-                  />
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <Input 
-                      id="newPassword" 
-                      name="newPassword"
+                    <Label htmlFor="new_password">New Password</Label>
+                    <Input
+                      id="new_password"
                       type="password"
                       value={passwordData.newPassword}
-                      onChange={handlePasswordChange}
+                      onChange={(e) =>
+                        setPasswordData({ ...passwordData, newPassword: e.target.value })
+                      }
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input 
-                      id="confirmPassword" 
-                      name="confirmPassword"
+                    <Label htmlFor="confirm_password">Confirm New Password</Label>
+                    <Input
+                      id="confirm_password"
                       type="password"
                       value={passwordData.confirmPassword}
-                      onChange={handlePasswordChange}
+                      onChange={(e) =>
+                        setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+                      }
                     />
                   </div>
-                </div>
-                <Button 
-                  type="submit"
-                  variant="outline"
-                  disabled={changingPassword}
-                >
-                  {changingPassword ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Changing...
-                    </>
-                  ) : (
-                    "Change Password"
-                  )}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Account Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Statistics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Member Since</p>
-                  <p className="text-lg font-semibold">
-                    {stats.memberSince ? formatDate(stats.memberSince) : "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Sessions</p>
-                  <p className="text-lg font-semibold">{stats.totalSessions}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Account Status</p>
-                  <p className="text-lg font-semibold text-green-600">{stats.accountStatus}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                  <Button onClick={handleChangePassword} disabled={changingPassword} className="w-full">
+                    {changingPassword ? "Changing..." : "Change Password"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </DashboardLayout>
     </>
