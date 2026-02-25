@@ -32,6 +32,7 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export default function UserProfile() {
   const router = useRouter();
+  const { user } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -368,16 +369,16 @@ export default function UserProfile() {
                       ref={fileInputRef}
                       type="file"
                       accept="image/*"
-                      onChange={handleFileSelect}
+                      onChange={handlePhotoUpload}
                       className="hidden"
                     />
                     <Button
                       onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
+                      disabled={uploadingPhoto}
                       className="w-full"
                     >
                       <Camera className="w-4 h-4 mr-2" />
-                      {uploading ? "Uploading..." : "Change Photo"}
+                      {uploadingPhoto ? "Uploading..." : "Change Photo"}
                     </Button>
                   </CardContent>
                 </Card>
