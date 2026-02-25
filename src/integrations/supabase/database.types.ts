@@ -109,6 +109,56 @@ export type Database = {
           },
         ]
       }
+      agency_details: {
+        Row: {
+          anchor_count: number | null
+          business_registration: string | null
+          commission_rate: number | null
+          company_name: string
+          contact_email: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          anchor_count?: number | null
+          business_registration?: string | null
+          commission_rate?: number | null
+          company_name: string
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          anchor_count?: number | null
+          business_registration?: string | null
+          commission_rate?: number | null
+          company_name?: string
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_details_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agency_profiles: {
         Row: {
           agency_name: string
@@ -150,6 +200,66 @@ export type Database = {
           {
             foreignKeyName: "agency_profiles_id_fkey"
             columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      anchor_details: {
+        Row: {
+          agency_id: string | null
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_name: string | null
+          created_at: string | null
+          id: string
+          is_verified: boolean | null
+          specialty: string | null
+          stage_name: string | null
+          streaming_schedule: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          agency_id?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          specialty?: string | null
+          stage_name?: string | null
+          streaming_schedule?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          agency_id?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          specialty?: string | null
+          stage_name?: string | null
+          streaming_schedule?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anchor_details_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anchor_details_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -631,12 +741,14 @@ export type Database = {
           ban_reason: string | null
           banned_at: string | null
           banned_by: string | null
+          bio: string | null
           created_at: string | null
           email: string | null
           full_name: string | null
           id: string
           is_proxy: boolean | null
           last_login_at: string | null
+          phone: string | null
           referral_code: string | null
           role: string | null
           status: string | null
@@ -647,12 +759,14 @@ export type Database = {
           ban_reason?: string | null
           banned_at?: string | null
           banned_by?: string | null
+          bio?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id: string
           is_proxy?: boolean | null
           last_login_at?: string | null
+          phone?: string | null
           referral_code?: string | null
           role?: string | null
           status?: string | null
@@ -663,12 +777,14 @@ export type Database = {
           ban_reason?: string | null
           banned_at?: string | null
           banned_by?: string | null
+          bio?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
           is_proxy?: boolean | null
           last_login_at?: string | null
+          phone?: string | null
           referral_code?: string | null
           role?: string | null
           status?: string | null
@@ -779,6 +895,53 @@ export type Database = {
             foreignKeyName: "referrals_referrer_id_fkey"
             columns: ["referrer_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_links: {
+        Row: {
+          created_at: string | null
+          facebook: string | null
+          id: string
+          instagram: string | null
+          tiktok: string | null
+          twitter: string | null
+          updated_at: string | null
+          user_id: string
+          website: string | null
+          youtube: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          facebook?: string | null
+          id?: string
+          instagram?: string | null
+          tiktok?: string | null
+          twitter?: string | null
+          updated_at?: string | null
+          user_id: string
+          website?: string | null
+          youtube?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          facebook?: string | null
+          id?: string
+          instagram?: string | null
+          tiktok?: string | null
+          twitter?: string | null
+          updated_at?: string | null
+          user_id?: string
+          website?: string | null
+          youtube?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_links_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -972,6 +1135,59 @@ export type Database = {
             foreignKeyName: "user_activity_logs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_settings: {
+        Row: {
+          allow_messages_from: string | null
+          created_at: string | null
+          email_notifications: boolean | null
+          id: string
+          marketing_emails: boolean | null
+          profile_visibility: string | null
+          push_notifications: boolean | null
+          show_online_status: boolean | null
+          sms_notifications: boolean | null
+          two_factor_enabled: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          allow_messages_from?: string | null
+          created_at?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          marketing_emails?: boolean | null
+          profile_visibility?: string | null
+          push_notifications?: boolean | null
+          show_online_status?: boolean | null
+          sms_notifications?: boolean | null
+          two_factor_enabled?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          allow_messages_from?: string | null
+          created_at?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          marketing_emails?: boolean | null
+          profile_visibility?: string | null
+          push_notifications?: boolean | null
+          show_online_status?: boolean | null
+          sms_notifications?: boolean | null
+          two_factor_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
