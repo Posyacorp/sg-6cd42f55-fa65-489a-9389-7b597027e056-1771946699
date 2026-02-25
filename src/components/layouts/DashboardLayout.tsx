@@ -22,7 +22,8 @@ import {
   UserCheck,
   Building2,
   Gift,
-  Vault
+  Vault,
+  Video
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -68,6 +69,7 @@ const navigationConfig: Record<"user" | "anchor" | "agency" | "admin", NavItem[]
     { label: "Anchors", href: "/admin/anchors", icon: <UserCheck className="w-4 h-4" /> },
     { label: "Agencies", href: "/admin/agencies", icon: <Building2 className="w-4 h-4" /> },
     { label: "Create Proxy Users", href: "/admin/create-proxy-users", icon: <UserPlus className="w-4 h-4" /> },
+    { label: "Test Video", href: "/admin/test-video", icon: <Video className="w-4 h-4" /> },
     { label: "Economy", href: "/admin/economy", icon: <DollarSign className="w-4 h-4" /> },
     { label: "Gifts", href: "/admin/gifts", icon: <Gift className="w-4 h-4" /> },
     { label: "Withdrawals", href: "/admin/withdrawals", icon: <TrendingDown className="w-4 h-4" /> },
