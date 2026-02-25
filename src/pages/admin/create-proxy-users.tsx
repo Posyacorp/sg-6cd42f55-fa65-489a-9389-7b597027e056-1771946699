@@ -125,11 +125,11 @@ export default function CreateProxyUsers() {
       const { data: stream, error } = await supabase
         .from("streams")
         .insert({
-          anchor_id: anchorId,
+          user_id: anchorId, // Fixed: anchor_id -> user_id
           title: title,
           status: "live",
           viewer_count: viewerCount,
-          start_time: new Date().toISOString()
+          started_at: new Date().toISOString() // Fixed: start_time -> started_at
         })
         .select()
         .single();
@@ -142,29 +142,8 @@ export default function CreateProxyUsers() {
     }
   };
 
-  const createChatMessages = async (streamId: string, users: any[]) => {
-    try {
-      const messageCount = Math.floor(Math.random() * 20) + 10;
-      const messages = [];
-
-      for (let i = 0; i < messageCount; i++) {
-        const randomUser = users[Math.floor(Math.random() * users.length)];
-        const randomMessage = chatMessages[Math.floor(Math.random() * chatMessages.length)];
-        
-        messages.push({
-          stream_id: streamId,
-          sender_id: randomUser.id,
-          message: randomMessage,
-          created_at: new Date(Date.now() - Math.random() * 3600000).toISOString()
-        });
-      }
-
-      await supabase.from("stream_messages").insert(messages);
-    } catch (error) {
-      console.error("Error creating messages:", error);
-    }
-  };
-
+  // Chat messages are ephemeral in current implementation, skipping persistence
+  
   const createGiftTransactions = async (streamId: string, anchorId: string, users: any[]) => {
     try {
       // Get available gifts
@@ -181,14 +160,16 @@ export default function CreateProxyUsers() {
       for (let i = 0; i < giftCount; i++) {
         const randomUser = users[Math.floor(Math.random() * users.length)];
         const randomGift = gifts[Math.floor(Math.random() * gifts.length)];
+        const quantity = 1;
         
         transactions.push({
           sender_id: randomUser.id,
           receiver_id: anchorId,
           gift_id: randomGift.id,
           stream_id: streamId,
-          coins_spent: randomGift.coin_price,
-          beans_earned: Math.floor(randomGift.coin_price * 0.5),
+          quantity: quantity,
+          total_coins: randomGift.coin_price * quantity, // Fixed column name
+          total_beans: Math.floor(randomGift.coin_price * 0.5 * quantity), // Fixed column name
           created_at: new Date(Date.now() - Math.random() * 3600000).toISOString()
         });
       }
@@ -352,31 +333,18 @@ export default function CreateProxyUsers() {
           await new Promise(resolve => setTimeout(resolve, 300));
         }
 
-        // Phase 3: Create Chat Messages
-        if (testDataOptions.createMessages && createdStreams.length > 0 && createdUsers.length > 0) {
-          toast({
-            title: "Phase 3/4: Creating Chat Messages",
-            description: `Adding realistic chat messages...`,
-          });
-
-          for (const stream of createdStreams) {
-            await createChatMessages(stream.id, createdUsers);
-            await new Promise(resolve => setTimeout(resolve, 200));
-          }
-        }
-
-        // Phase 4: Create Gift Transactions
+        // Phase 3: Create Gift Transactions (Skipping chat as it's realtime only)
         if (testDataOptions.createGifts && createdStreams.length > 0 && createdUsers.length > 0) {
           toast({
-            title: "Phase 4/4: Creating Gift Transactions",
+            title: "Phase 3/3: Creating Gift Transactions",
             description: `Adding gift transactions...`,
           });
 
           for (const stream of createdStreams) {
             await createGiftTransactions(
               stream.id,
-              stream.anchor_id,
-              createdUsers.filter(u => u.id !== stream.anchor_id)
+              stream.user_id, // Fixed: anchor_id -> user_id
+              createdUsers.filter(u => u.id !== stream.user_id)
             );
             await new Promise(resolve => setTimeout(resolve, 200));
           }
@@ -389,7 +357,6 @@ export default function CreateProxyUsers() {
           Users Created: ${successCount}
           Users Failed: ${failCount}
           ${testDataOptions.createStreams ? `Streams: ${Math.min(testDataOptions.streamCount, createdAnchors.length)}` : ''}
-          ${testDataOptions.createMessages ? 'Chat Messages: Added' : ''}
           ${testDataOptions.createGifts ? 'Gift Transactions: Added' : ''}
         `,
       });
@@ -479,24 +446,6 @@ export default function CreateProxyUsers() {
 
                 <div className="flex items-center space-x-2">
                   <Checkbox
-                    id="createMessages"
-                    checked={testDataOptions.createMessages}
-                    onCheckedChange={(checked) => 
-                      setTestDataOptions({ ...testDataOptions, createMessages: checked as boolean })
-                    }
-                    disabled={!testDataOptions.createStreams}
-                  />
-                  <Label 
-                    htmlFor="createMessages" 
-                    className={`text-sm cursor-pointer flex items-center gap-2 ${!testDataOptions.createStreams ? 'opacity-50' : ''}`}
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    Add chat messages to streams
-                  </Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
                     id="createGifts"
                     checked={testDataOptions.createGifts}
                     onCheckedChange={(checked) => 
@@ -527,7 +476,6 @@ export default function CreateProxyUsers() {
                       <li>✅ Realistic viewer counts</li>
                     </>
                   )}
-                  {testDataOptions.createMessages && <li>✅ Chat message history</li>}
                   {testDataOptions.createGifts && <li>✅ Gift transaction activity</li>}
                 </ul>
               </div>
