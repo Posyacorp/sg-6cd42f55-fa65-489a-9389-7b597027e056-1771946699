@@ -1,95 +1,243 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
-type Stream = Database["public"]["Tables"]["streams"]["Row"];
+type StreamStatus = Database["public"]["Enums"]["stream_status"];
+type StreamType = "video" | "audio" | "pk_battle";
+
+export interface Stream {
+  id: string;
+  anchor_id: string;
+  title: string;
+  description: string;
+  thumbnail_url?: string;
+  stream_url?: string;
+  status: StreamStatus;
+  stream_type: StreamType;
+  viewer_count: number;
+  total_coins_received: number;
+  started_at?: string;
+  ended_at?: string;
+  created_at: string;
+}
+
+export interface StreamViewer {
+  stream_id: string;
+  user_id: string;
+  joined_at: string;
+  left_at?: string;
+  total_coins_spent: number;
+}
 
 export const streamService = {
-  async startStream(userId: string, title: string): Promise<{ data: Stream | null; error: any }> {
-    try {
-      // First, end any existing active streams for this user
-      await supabase
-        .from("streams")
-        .update({ status: "ended", ended_at: new Date().toISOString() })
-        .eq("user_id", userId)
-        .eq("status", "live");
+  // ============ STREAM MANAGEMENT ============
 
+  async createStream(anchorId: string, streamData: {
+    title: string;
+    description?: string;
+    thumbnail_url?: string;
+    stream_type?: StreamType;
+  }) {
+    try {
       const { data, error } = await supabase
         .from("streams")
         .insert({
-          user_id: userId,
-          title: title,
-          status: "live",
+          anchor_id: anchorId,
+          title: streamData.title,
+          description: streamData.description,
+          thumbnail_url: streamData.thumbnail_url,
+          stream_type: streamData.stream_type || "video",
+          status: "scheduled",
           viewer_count: 0,
-          started_at: new Date().toISOString(),
+          total_coins_received: 0,
         })
         .select()
         .single();
 
       if (error) throw error;
-      return { data, error: null };
+      return { success: true, data };
     } catch (error) {
-      console.error("Error starting stream:", error);
-      return { data: null, error };
+      console.error("Error creating stream:", error);
+      return { success: false, error };
     }
   },
 
-  async endStream(streamId: string): Promise<{ success: boolean; error?: any }> {
+  async startStream(streamId: string, streamUrl: string) {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("streams")
-        .update({ status: "ended", ended_at: new Date().toISOString() })
-        .eq("id", streamId);
+        .update({
+          status: "live",
+          stream_url: streamUrl,
+          started_at: new Date().toISOString(),
+        })
+        .eq("id", streamId)
+        .select()
+        .single();
 
       if (error) throw error;
-      return { success: true };
+      return { success: true, data };
+    } catch (error) {
+      console.error("Error starting stream:", error);
+      return { success: false, error };
+    }
+  },
+
+  async endStream(streamId: string) {
+    try {
+      const { data, error } = await supabase
+        .from("streams")
+        .update({
+          status: "ended",
+          ended_at: new Date().toISOString(),
+        })
+        .eq("id", streamId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { success: true, data };
     } catch (error) {
       console.error("Error ending stream:", error);
       return { success: false, error };
     }
   },
 
-  async getActiveStreams(): Promise<{ data: any[] | null; error: any }> {
+  async getLiveStreams() {
     try {
       const { data, error } = await supabase
         .from("streams")
         .select(`
           *,
-          user:profiles!streams_user_id_fkey(full_name, avatar_url)
+          anchor:profiles!anchor_id(
+            full_name,
+            avatar_url
+          )
         `)
         .eq("status", "live")
         .order("viewer_count", { ascending: false });
 
       if (error) throw error;
-      return { data, error: null };
+      return { success: true, data: data || [] };
     } catch (error) {
-      console.error("Error fetching active streams:", error);
-      return { data: null, error };
+      console.error("Error fetching live streams:", error);
+      return { success: false, data: [], error };
     }
   },
 
-  async getStreamById(streamId: string): Promise<{ data: any | null; error: any }> {
+  async getStreamById(streamId: string) {
     try {
       const { data, error } = await supabase
         .from("streams")
         .select(`
           *,
-          user:profiles!streams_user_id_fkey(full_name, avatar_url)
+          anchor:profiles!anchor_id(
+            full_name,
+            avatar_url
+          )
         `)
         .eq("id", streamId)
         .single();
 
       if (error) throw error;
-      return { data, error: null };
+      return { success: true, data };
     } catch (error) {
       console.error("Error fetching stream:", error);
-      return { data: null, error };
+      return { success: false, error };
     }
   },
 
-  async updateViewerCount(streamId: string, increment: boolean): Promise<void> {
-    // Note: In a real high-scale app, use an Edge Function or Realtime Presence
-    // This is a simple implementation using an RPC call (if it existed) or simple update
-    // For now, we'll just skip the atomic increment to save token space/complexity
-    // and rely on a periodic refresh or presence count in the UI
-  }
+  // ============ VIEWER MANAGEMENT ============
+
+  async joinStream(streamId: string, userId: string) {
+    try {
+      // Add viewer record
+      const { error: viewerError } = await supabase
+        .from("stream_viewers")
+        .insert({
+          stream_id: streamId,
+          user_id: userId,
+          joined_at: new Date().toISOString(),
+          total_coins_spent: 0,
+        });
+
+      if (viewerError && viewerError.code !== "23505") throw viewerError; // Ignore duplicate key errors
+
+      // Increment viewer count
+      const { error: updateError } = await supabase.rpc("increment_viewer_count", {
+        stream_id: streamId,
+      });
+
+      if (updateError) throw updateError;
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error joining stream:", error);
+      return { success: false, error };
+    }
+  },
+
+  async leaveStream(streamId: string, userId: string) {
+    try {
+      // Update viewer record
+      const { error: viewerError } = await supabase
+        .from("stream_viewers")
+        .update({
+          left_at: new Date().toISOString(),
+        })
+        .eq("stream_id", streamId)
+        .eq("user_id", userId);
+
+      if (viewerError) throw viewerError;
+
+      // Decrement viewer count
+      const { error: updateError } = await supabase.rpc("decrement_viewer_count", {
+        stream_id: streamId,
+      });
+
+      if (updateError) throw updateError;
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error leaving stream:", error);
+      return { success: false, error };
+    }
+  },
+
+  // ============ REALTIME SUBSCRIPTIONS ============
+
+  subscribeToStream(streamId: string, callbacks: {
+    onViewerCountChange?: (count: number) => void;
+    onGiftReceived?: (gift: any) => void;
+    onStreamEnd?: () => void;
+  }) {
+    const channel = supabase
+      .channel(`stream:${streamId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "streams",
+          filter: `id=eq.${streamId}`,
+        },
+        (payload) => {
+          const stream = payload.new as Stream;
+          
+          if (callbacks.onViewerCountChange) {
+            callbacks.onViewerCountChange(stream.viewer_count);
+          }
+
+          if (stream.status === "ended" && callbacks.onStreamEnd) {
+            callbacks.onStreamEnd();
+          }
+        }
+      )
+      .subscribe();
+
+    return channel;
+  },
+
+  unsubscribeFromStream(channel: any) {
+    supabase.removeChannel(channel);
+  },
 };
