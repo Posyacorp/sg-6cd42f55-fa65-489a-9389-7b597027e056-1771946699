@@ -1,0 +1,42 @@
+{
+  "name": "Pukaarly - Social Earnings Platform",
+  "short_name": "Pukaarly",
+  "description": "Connect, earn, and grow with Pukaarly's innovative reward ecosystem",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#9333ea",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/og-image.png",
+      "type": "image/png",
+      "sizes": "1200x630",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["social", "finance", "entertainment"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/user/dashboard",
+      "description": "View your dashboard"
+    },
+    {
+      "name": "Wallet",
+      "url": "/user/wallet",
+      "description": "Manage your wallet"
+    },
+    {
+      "name": "Explore",
+      "url": "/user/explore",
+      "description": "Explore anchors"
+    }
+  ]
+}

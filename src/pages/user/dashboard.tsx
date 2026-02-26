@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { walletService } from "@/services/walletService";
@@ -8,7 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Wallet, Gift, Users, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { LineChart } from "@/components/charts/LineChart";
+
+const LineChart = dynamic(() => import("@/components/charts/LineChart").then(mod => ({ default: mod.LineChart })), {
+  loading: () => <div className="flex items-center justify-center h-[250px]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>,
+  ssr: false
+});
 
 export default function UserDashboard() {
   const { user, profile } = useAuth();

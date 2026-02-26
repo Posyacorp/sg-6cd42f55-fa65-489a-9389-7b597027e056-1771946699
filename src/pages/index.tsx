@@ -1,5 +1,6 @@
 import { SEO } from "@/components/SEO";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Coins, Users, TrendingUp, Shield, Gift, Wallet } from "lucide-react";
 
