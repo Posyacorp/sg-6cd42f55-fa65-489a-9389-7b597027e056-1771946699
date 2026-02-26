@@ -318,36 +318,36 @@ export default function UserProfile() {
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 My Profile
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-sm sm:text-base text-gray-600 mt-1">
                 Manage your account settings and preferences
               </p>
             </div>
           </div>
 
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5 lg:w-auto">
-              <TabsTrigger value="profile" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-5 h-auto">
+              <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 text-xs sm:text-sm">
                 <User className="w-4 h-4" />
-                <span className="hidden sm:inline">Profile</span>
+                <span>Profile</span>
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <TabsTrigger value="notifications" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 text-xs sm:text-sm">
                 <Bell className="w-4 h-4" />
-                <span className="hidden sm:inline">Notifications</span>
+                <span>Notifications</span>
               </TabsTrigger>
-              <TabsTrigger value="privacy" className="flex items-center gap-2">
+              <TabsTrigger value="privacy" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 text-xs sm:text-sm">
                 <Lock className="w-4 h-4" />
-                <span className="hidden sm:inline">Privacy</span>
+                <span>Privacy</span>
               </TabsTrigger>
-              <TabsTrigger value="social" className="flex items-center gap-2">
+              <TabsTrigger value="social" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 text-xs sm:text-sm">
                 <Globe className="w-4 h-4" />
-                <span className="hidden sm:inline">Social</span>
+                <span>Social</span>
               </TabsTrigger>
-              <TabsTrigger value="security" className="flex items-center gap-2">
+              <TabsTrigger value="security" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 text-xs sm:text-sm">
                 <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">Security</span>
+                <span>Security</span>
               </TabsTrigger>
             </TabsList>
 
