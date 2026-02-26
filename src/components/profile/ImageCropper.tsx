@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 import { RotateCw, ZoomIn, ZoomOut, Move } from "lucide-react";
 
 interface ImageCropperProps {

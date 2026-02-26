@@ -232,4 +232,17 @@ export const authService = {
 
     return { success: true };
   },
+
+  // Change password (for authenticated users in profile)
+  async changePassword(newPassword: string) {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true };
+  },
 };
