@@ -1,13 +1,27 @@
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { adminService } from "@/services/adminService";
 import { Loader2, Users, UserCheck, Building2, TrendingUp, DollarSign, Gift } from "lucide-react";
-import { LineChart } from "@/components/charts/LineChart";
-import { PieChart } from "@/components/charts/PieChart";
-import { BarChart } from "@/components/charts/BarChart";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/router";
+
+// Lazy load chart components for better performance
+const LineChart = dynamic(() => import("@/components/charts/LineChart").then(mod => ({ default: mod.LineChart })), {
+  loading: () => <div className="h-[300px] bg-gray-100 animate-pulse rounded-lg"></div>,
+  ssr: false
+});
+
+const PieChart = dynamic(() => import("@/components/charts/PieChart").then(mod => ({ default: mod.PieChart })), {
+  loading: () => <div className="h-[300px] bg-gray-100 animate-pulse rounded-lg"></div>,
+  ssr: false
+});
+
+const BarChart = dynamic(() => import("@/components/charts/BarChart").then(mod => ({ default: mod.BarChart })), {
+  loading: () => <div className="h-[300px] bg-gray-100 animate-pulse rounded-lg"></div>,
+  ssr: false
+});
 
 export default function AdminDashboard() {
   const { user, loading: authLoading, isAdmin } = useAuth();

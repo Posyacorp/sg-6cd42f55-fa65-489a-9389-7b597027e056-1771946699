@@ -1,10 +1,17 @@
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { walletService } from "@/services/walletService";
 import { Loader2, DollarSign, TrendingUp, Users, Phone, Star } from "lucide-react";
 import { useRouter } from "next/router";
+
+// Lazy load components that are not immediately visible
+const QuickActions = dynamic(() => import("@/components/ui/card").then(mod => ({ default: Card })), {
+  loading: () => <div className="h-32 bg-gray-100 animate-pulse rounded-lg"></div>,
+  ssr: true
+});
 
 export default function AnchorDashboard() {
   const { user, loading: authLoading, isAnchor } = useAuth();
