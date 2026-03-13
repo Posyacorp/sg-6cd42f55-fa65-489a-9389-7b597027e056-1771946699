@@ -27,6 +27,9 @@ export interface UserStatistics {
   newUsersThisMonth: number;
   totalAnchors: number;
   totalAgencies: number;
+  pendingApprovals?: number;
+  pendingAgencyApplications?: number;
+  pendingWithdrawals?: number;
   usersByRole: {
     user: number;
     anchor: number;
@@ -423,7 +426,7 @@ export const adminService = {
 
       // Get pending withdrawals count
       const { data: pendingWithdrawals } = await supabase
-        .from("withdrawals")
+        .from("withdrawal_requests")
         .select("id")
         .eq("status", "pending");
 
