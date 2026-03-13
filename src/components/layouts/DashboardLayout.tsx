@@ -30,6 +30,7 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { authService } from "@/services/authService";
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface NavItem {
   label: string;
