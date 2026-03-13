@@ -872,19 +872,18 @@ export const adminService = {
 
   async getPendingAgencyApplications() {
     try {
-      const { data, error } = await supabase
+      const query = supabase
         .from("agency_applications")
-        .select(`
-          *,
-          anchor:profiles!agency_applications_anchor_id_fkey(id, email, full_name)
-        ` as any)
-        .eq("status", "pending")
+        .select(`*, anchor:profiles!agency_applications_anchor_id_fkey(id, email, full_name)`)
+        .eq("application_status", "pending")
         .order("created_at", { ascending: true });
+        
+      const { data, error } = await (query as any);
 
       if (error) throw error;
 
       // Transform data to include anchor_name
-      const transformed = data?.map(app => ({
+      const transformed = (data as any[])?.map((app: any) => ({
         ...app,
         anchor_name: app.anchor?.full_name || app.anchor?.email || "Unknown Anchor"
       }));
@@ -910,7 +909,7 @@ export const adminService = {
       // Update application status
       const { error: updateError } = await supabase
         .from("agency_applications")
-        .update({ status: "approved", updated_at: new Date().toISOString() })
+        .update({ application_status: "approved", updated_at: new Date().toISOString() })
         .eq("id", applicationId);
 
       if (updateError) throw updateError;
@@ -934,7 +933,7 @@ export const adminService = {
     try {
       const { data, error } = await supabase
         .from("agency_applications")
-        .update({ status: "rejected", updated_at: new Date().toISOString() })
+        .update({ application_status: "rejected", updated_at: new Date().toISOString() })
         .eq("id", applicationId)
         .select()
         .single();

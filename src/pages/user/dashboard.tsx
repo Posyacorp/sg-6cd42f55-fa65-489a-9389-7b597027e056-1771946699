@@ -26,7 +26,7 @@ const AreaChart = dynamic(() => import("@/components/charts/AreaChart").then(mod
 });
 
 export default function UserDashboard() {
-  const { user, loading: authLoading, isUser } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   
   const [loading, setLoading] = useState(true);
@@ -41,20 +41,20 @@ export default function UserDashboard() {
 
   useEffect(() => {
     if (!authLoading) {
-      if (!user || !isUser) {
+      if (!user || user.role !== 'user') {
         router.push("/auth/login");
         return;
       }
       loadDashboardData();
     }
-  }, [user, authLoading, isUser]);
+  }, [user, authLoading]);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
 
       // Load balances
-      const { data: wallet } = await walletService.getBalances(user!.id);
+      const { data: wallet } = await walletService.getBalance(user!.id);
       if (wallet) {
         setBalances({
           coins: wallet.coins,
@@ -184,7 +184,7 @@ export default function UserDashboard() {
               <AreaChart
                 title=""
                 data={spendingData}
-                dataKeys={[{ key: "coins", color: "#f59e0b", name: "Coins Spent" }]}
+                dataKey="coins"
                 xAxisKey="day"
                 height={280}
               />

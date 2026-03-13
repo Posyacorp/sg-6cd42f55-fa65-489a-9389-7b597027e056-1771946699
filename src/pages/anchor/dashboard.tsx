@@ -74,14 +74,14 @@ export default function AnchorDashboard() {
       // Check agency application status
       const { data: appData } = await supabase
         .from("agency_applications")
-        .select("status")
+        .select("application_status")
         .eq("anchor_id", user?.id)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
 
       if (appData) {
-        setAgencyAppStatus(appData.status);
+        setAgencyAppStatus(appData.application_status);
       }
 
       setAnchorProfile(profileData || {
@@ -122,7 +122,7 @@ export default function AnchorDashboard() {
         .from("agency_applications")
         .insert({
           anchor_id: user?.id,
-          status: "pending"
+          application_status: "pending"
         });
         
       if (error) throw error;
@@ -198,7 +198,7 @@ export default function AnchorDashboard() {
                     <span>Progress to Level {currentLevel + 1}</span>
                     <span className="font-medium">{currentXp} / {nextLevelXp} XP</span>
                   </div>
-                  <Progress value={progressPercent} className="h-2" indicatorClassName="bg-purple-600" />
+                  <Progress value={progressPercent} className="h-2" />
                 </div>
                 <div className="flex items-center justify-between text-sm bg-white/50 dark:bg-black/20 p-2 rounded-md">
                   <span className="text-muted-foreground">Current Call Rate:</span>
