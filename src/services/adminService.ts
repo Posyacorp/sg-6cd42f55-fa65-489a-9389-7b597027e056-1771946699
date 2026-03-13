@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { notificationService } from "./notificationService";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type AdminAction = Database["public"]["Tables"]["admin_actions"]["Row"];
@@ -836,37 +837,59 @@ export const adminService = {
     }
   },
 
-  async approveProfile(profileId: string) {
+  async approveProfile(userId: string) {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .update({ approval_status: "approved", status: "active" })
-        .eq("id", profileId)
+        .update({ approval_status: "approved" })
+        .eq("id", userId)
         .select()
         .single();
 
       if (error) throw error;
-      return { data, error: null };
+
+      // Send notification to user
+      if (data) {
+        const role = data.role as string;
+        await notificationService.notifyApprovalStatus(
+          userId,
+          role === "anchor" ? "anchor" : "agency",
+          "approved"
+        );
+      }
+
+      return { success: true, data };
     } catch (error) {
-      console.error("Error approving profile:", error);
-      return { data: null, error };
+      console.error("Approve profile error:", error);
+      return { success: false, error };
     }
   },
 
-  async rejectProfile(profileId: string) {
+  async rejectProfile(userId: string) {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .update({ approval_status: "rejected", status: "suspended" })
-        .eq("id", profileId)
+        .update({ approval_status: "rejected" })
+        .eq("id", userId)
         .select()
         .single();
 
       if (error) throw error;
-      return { data, error: null };
+
+      // Send notification to user
+      if (data) {
+        const role = data.role as string;
+        await notificationService.notifyApprovalStatus(
+          userId,
+          role === "anchor" ? "anchor" : "agency",
+          "rejected"
+        );
+      }
+
+      return { success: true, data };
     } catch (error) {
-      console.error("Error rejecting profile:", error);
-      return { data: null, error };
+      console.error("Reject profile error:", error);
+      return { success: false, error };
     }
   },
 
@@ -897,52 +920,70 @@ export const adminService = {
 
   async approveAgencyApplication(applicationId: string) {
     try {
-      // Get application details
-      const { data: application, error: appError } = await supabase
+      const { data: application, error: fetchError } = await supabase
         .from("agency_applications")
-        .select("anchor_id")
+        .select()
         .eq("id", applicationId)
         .single();
 
-      if (appError) throw appError;
+      if (fetchError) throw fetchError;
 
-      // Update application status
       const { error: updateError } = await supabase
         .from("agency_applications")
-        .update({ application_status: "approved", updated_at: new Date().toISOString() })
+        .update({ application_status: "approved" })
         .eq("id", applicationId);
 
       if (updateError) throw updateError;
 
-      // Upgrade anchor to agency
       const { error: roleError } = await supabase
         .from("profiles")
-        .update({ role: "agency", approval_status: "approved" })
+        .update({ role: "agency" })
         .eq("id", application.anchor_id);
 
       if (roleError) throw roleError;
 
-      return { data: true, error: null };
+      // Send notification to user
+      await notificationService.notifyApprovalStatus(
+        application.anchor_id,
+        "agency_application",
+        "approved"
+      );
+
+      return { success: true };
     } catch (error) {
-      console.error("Error approving agency application:", error);
-      return { data: null, error };
+      console.error("Approve agency application error:", error);
+      return { success: false, error };
     }
   },
 
   async rejectAgencyApplication(applicationId: string) {
     try {
-      const { data, error } = await supabase
+      const { data: application, error: fetchError } = await supabase
         .from("agency_applications")
-        .update({ application_status: "rejected", updated_at: new Date().toISOString() })
-        .eq("id", applicationId)
         .select()
+        .eq("id", applicationId)
         .single();
 
+      if (fetchError) throw fetchError;
+
+      const { error } = await supabase
+        .from("agency_applications")
+        .update({ application_status: "rejected" })
+        .eq("id", applicationId);
+
       if (error) throw error;
-      return { data, error: null };
+
+      // Send notification to user
+      await notificationService.notifyApprovalStatus(
+        application.anchor_id,
+        "agency_application",
+        "rejected"
+      );
+
+      return { success: true };
     } catch (error) {
-      console.error("Error rejecting agency application:", error);
-      return { data: null, error };
+      console.error("Reject agency application error:", error);
+      return { success: false, error };
     }
   },
 

@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { notificationService } from "@/services/notificationService";
+import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
 type Notification = Database["public"]["Tables"]["notifications"]["Row"];
@@ -21,7 +22,7 @@ export function NotificationBell() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user } } = await notificationService["supabase"].auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
         loadNotifications(user.id);
