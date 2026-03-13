@@ -409,6 +409,24 @@ export const adminService = {
       const monthAgo = new Date(today);
       monthAgo.setMonth(monthAgo.getMonth() - 1);
 
+      // Get pending approvals count
+      const { data: pendingProfiles } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("approval_status", "pending");
+
+      // Get pending agency applications count
+      const { data: pendingApps } = await supabase
+        .from("agency_applications")
+        .select("id")
+        .eq("status", "pending");
+
+      // Get pending withdrawals count
+      const { data: pendingWithdrawals } = await supabase
+        .from("withdrawals")
+        .select("id")
+        .eq("status", "pending");
+
       const stats: UserStatistics = {
         totalUsers: allUsers?.length || 0,
         activeUsers: allUsers?.filter((u) => u.status === "active").length || 0,
@@ -419,6 +437,9 @@ export const adminService = {
         newUsersThisMonth: allUsers?.filter((u) => new Date(u.created_at) >= monthAgo).length || 0,
         totalAnchors: allUsers?.filter((u) => u.role === "anchor").length || 0,
         totalAgencies: allUsers?.filter((u) => u.role === "agency").length || 0,
+        pendingApprovals: pendingProfiles?.length || 0,
+        pendingAgencyApplications: pendingApps?.length || 0,
+        pendingWithdrawals: pendingWithdrawals?.length || 0,
         usersByRole: {
           user: allUsers?.filter((u) => u.role === "user").length || 0,
           anchor: allUsers?.filter((u) => u.role === "anchor").length || 0,
@@ -789,6 +810,218 @@ export const adminService = {
       return { success: true, error: null };
     } catch (error) {
       console.error("Error deleting proxy user:", error);
+      return { success: false, error };
+    }
+  },
+
+  // ============ APPROVAL WORKFLOWS ============
+
+  async getPendingApprovals() {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("approval_status", "pending")
+        .in("role", ["anchor", "agency"])
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error("Error getting pending approvals:", error);
+      return { data: null, error };
+    }
+  },
+
+  async approveProfile(profileId: string) {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({ approval_status: "approved", status: "active" })
+        .eq("id", profileId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error("Error approving profile:", error);
+      return { data: null, error };
+    }
+  },
+
+  async rejectProfile(profileId: string) {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({ approval_status: "rejected", status: "suspended" })
+        .eq("id", profileId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error("Error rejecting profile:", error);
+      return { data: null, error };
+    }
+  },
+
+  async getPendingAgencyApplications() {
+    try {
+      const { data, error } = await supabase
+        .from("agency_applications")
+        .select(`
+          *,
+          anchor:profiles!agency_applications_anchor_id_fkey(id, email, full_name)
+        `)
+        .eq("status", "pending")
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      // Transform data to include anchor_name
+      const transformed = data?.map(app => ({
+        ...app,
+        anchor_name: app.anchor?.full_name || app.anchor?.email || "Unknown Anchor"
+      }));
+
+      return { data: transformed, error: null };
+    } catch (error) {
+      console.error("Error getting pending agency applications:", error);
+      return { data: null, error };
+    }
+  },
+
+  async approveAgencyApplication(applicationId: string) {
+    try {
+      // Get application details
+      const { data: application, error: appError } = await supabase
+        .from("agency_applications")
+        .select("anchor_id")
+        .eq("id", applicationId)
+        .single();
+
+      if (appError) throw appError;
+
+      // Update application status
+      const { error: updateError } = await supabase
+        .from("agency_applications")
+        .update({ status: "approved", updated_at: new Date().toISOString() })
+        .eq("id", applicationId);
+
+      if (updateError) throw updateError;
+
+      // Upgrade anchor to agency
+      const { error: roleError } = await supabase
+        .from("profiles")
+        .update({ role: "agency", approval_status: "approved" })
+        .eq("id", application.anchor_id);
+
+      if (roleError) throw roleError;
+
+      return { data: true, error: null };
+    } catch (error) {
+      console.error("Error approving agency application:", error);
+      return { data: null, error };
+    }
+  },
+
+  async rejectAgencyApplication(applicationId: string) {
+    try {
+      const { data, error } = await supabase
+        .from("agency_applications")
+        .update({ status: "rejected", updated_at: new Date().toISOString() })
+        .eq("id", applicationId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error("Error rejecting agency application:", error);
+      return { data: null, error };
+    }
+  },
+
+  // ============ COMMISSION MANAGEMENT ============
+
+  async getCommissionOverride(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from("commission_overrides")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return { data, error: null };
+    } catch (error) {
+      console.error("Error getting commission override:", error);
+      return { data: null, error };
+    }
+  },
+
+  async setCommissionOverride(
+    userId: string,
+    adminCommission: number,
+    anchorCommission: number,
+    agencyCommission: number,
+    userCommission: number,
+    referralCommission: number,
+    adminId: string
+  ) {
+    try {
+      const { data, error } = await supabase
+        .from("commission_overrides")
+        .upsert({
+          user_id: userId,
+          admin_commission: adminCommission,
+          anchor_commission: anchorCommission,
+          agency_commission: agencyCommission,
+          user_commission: userCommission,
+          referral_commission: referralCommission,
+          created_by: adminId,
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await this.logAdminAction({
+        admin_id: adminId,
+        action_type: "set_commission_override",
+        target_user_id: userId,
+        details: { adminCommission, anchorCommission, agencyCommission, userCommission, referralCommission },
+      });
+
+      return { data, error: null };
+    } catch (error) {
+      console.error("Error setting commission override:", error);
+      return { data: null, error };
+    }
+  },
+
+  async removeCommissionOverride(userId: string, adminId: string) {
+    try {
+      const { error } = await supabase
+        .from("commission_overrides")
+        .delete()
+        .eq("user_id", userId);
+
+      if (error) throw error;
+
+      await this.logAdminAction({
+        admin_id: adminId,
+        action_type: "remove_commission_override",
+        target_user_id: userId,
+        details: {},
+      });
+
+      return { success: true, error: null };
+    } catch (error) {
+      console.error("Error removing commission override:", error);
       return { success: false, error };
     }
   },
