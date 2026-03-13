@@ -63,7 +63,7 @@ export function NotificationBell() {
   const handleMarkAsRead = async (notificationId: string) => {
     await notificationService.markAsRead(notificationId);
     setNotifications(prev =>
-      prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+      prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
     );
     setUnreadCount(prev => Math.max(0, prev - 1));
   };
@@ -71,7 +71,7 @@ export function NotificationBell() {
   const handleMarkAllAsRead = async () => {
     if (!userId) return;
     await notificationService.markAllAsRead(userId);
-    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     setUnreadCount(0);
   };
 
@@ -83,7 +83,7 @@ export function NotificationBell() {
   const handleDeleteAllRead = async () => {
     if (!userId) return;
     await notificationService.deleteAllRead(userId);
-    setNotifications(prev => prev.filter(n => !n.is_read));
+    setNotifications(prev => prev.filter(n => !n.read));
   };
 
   const getNotificationIcon = (type: string) => {
@@ -142,7 +142,7 @@ export function NotificationBell() {
                 Mark all read
               </Button>
             )}
-            {notifications.some(n => n.is_read) && (
+            {notifications.some(n => n.read) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -168,7 +168,7 @@ export function NotificationBell() {
                 <div
                   key={notification.id}
                   className={`p-4 hover:bg-accent/50 transition-colors ${
-                    !notification.is_read ? "bg-accent/20" : ""
+                    !notification.read ? "bg-accent/20" : ""
                   }`}
                 >
                   <div className="flex gap-3">
@@ -196,7 +196,7 @@ export function NotificationBell() {
                         <span className="text-xs text-muted-foreground">
                           {formatTime(notification.created_at)}
                         </span>
-                        {!notification.is_read && (
+                        {!notification.read && (
                           <Button
                             variant="ghost"
                             size="sm"

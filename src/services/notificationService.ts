@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
-type NotificationType = Database["public"]["Enums"]["notification_type"];
+type NotificationType = "approval" | "withdrawal" | "referral" | "system" | "transaction";
 type Notification = Database["public"]["Tables"]["notifications"]["Row"];
 
 export const notificationService = {
@@ -23,8 +23,8 @@ export const notificationService = {
           title,
           message,
           metadata,
-          is_read: false
-        })
+          read: false
+        } as any)
         .select()
         .single();
 
@@ -40,12 +40,14 @@ export const notificationService = {
 
   async getUserNotifications(userId: string, limit = 50) {
     try {
-      const { data, error } = await supabase
+      const query = supabase
         .from("notifications")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(limit);
+        
+      const { data, error } = await (query as any);
 
       if (error) throw error;
       return { success: true, data: data || [] };
@@ -57,11 +59,13 @@ export const notificationService = {
 
   async getUnreadCount(userId: string) {
     try {
-      const { count, error } = await supabase
+      const query = supabase
         .from("notifications")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId)
-        .eq("is_read", false);
+        .eq("read", false);
+        
+      const { count, error } = await (query as any);
 
       if (error) throw error;
       return { success: true, count: count || 0 };
@@ -77,7 +81,7 @@ export const notificationService = {
     try {
       const { error } = await supabase
         .from("notifications")
-        .update({ is_read: true })
+        .update({ read: true } as any)
         .eq("id", notificationId);
 
       if (error) throw error;
@@ -92,9 +96,9 @@ export const notificationService = {
     try {
       const { error } = await supabase
         .from("notifications")
-        .update({ is_read: true })
+        .update({ read: true } as any)
         .eq("user_id", userId)
-        .eq("is_read", false);
+        .eq("read", false);
 
       if (error) throw error;
       return { success: true };
@@ -127,7 +131,7 @@ export const notificationService = {
         .from("notifications")
         .delete()
         .eq("user_id", userId)
-        .eq("is_read", true);
+        .eq("read", true);
 
       if (error) throw error;
       return { success: true };
@@ -264,7 +268,7 @@ export const notificationService = {
           type: "system" as NotificationType,
           title,
           message,
-          is_read: false
+          read: false
         }));
 
         const { error } = await supabase
@@ -285,7 +289,7 @@ export const notificationService = {
           type: "system" as NotificationType,
           title,
           message,
-          is_read: false
+          read: false
         }));
 
         const { error } = await supabase
