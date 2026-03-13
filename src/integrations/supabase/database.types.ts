@@ -1,4 +1,4 @@
- 
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 export type Json =
   | string
   | number
@@ -51,6 +51,72 @@ export type Database = {
           {
             foreignKeyName: "admin_actions_target_user_id_fkey"
             columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agency_applications: {
+        Row: {
+          admin_notes: string | null
+          anchor_id: string
+          application_status: string
+          business_registration: string | null
+          company_name: string
+          contact_email: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          created_at: string | null
+          id: string
+          proposed_commission_rate: number | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          anchor_id: string
+          application_status?: string
+          business_registration?: string | null
+          company_name: string
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          proposed_commission_rate?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          anchor_id?: string
+          application_status?: string
+          business_registration?: string | null
+          company_name?: string
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          proposed_commission_rate?: number | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_applications_anchor_id_fkey"
+            columns: ["anchor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_applications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -413,6 +479,63 @@ export type Database = {
           },
         ]
       }
+      commission_overrides: {
+        Row: {
+          admin_commission_rate: number | null
+          agency_commission_rate: number | null
+          anchor_commission_rate: number | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          notes: string | null
+          referral_pool_rate: number | null
+          updated_at: string | null
+          user_cashback_rate: number | null
+          user_id: string
+        }
+        Insert: {
+          admin_commission_rate?: number | null
+          agency_commission_rate?: number | null
+          anchor_commission_rate?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          referral_pool_rate?: number | null
+          updated_at?: string | null
+          user_cashback_rate?: number | null
+          user_id: string
+        }
+        Update: {
+          admin_commission_rate?: number | null
+          agency_commission_rate?: number | null
+          anchor_commission_rate?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          referral_pool_rate?: number | null
+          updated_at?: string | null
+          user_cashback_rate?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_overrides_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_overrides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string | null
@@ -737,6 +860,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_status: string | null
           avatar_url: string | null
           ban_reason: string | null
           banned_at: string | null
@@ -750,11 +874,13 @@ export type Database = {
           last_login_at: string | null
           phone: string | null
           referral_code: string | null
+          referred_by: string | null
           role: string | null
           status: string | null
           updated_at: string | null
         }
         Insert: {
+          approval_status?: string | null
           avatar_url?: string | null
           ban_reason?: string | null
           banned_at?: string | null
@@ -768,11 +894,13 @@ export type Database = {
           last_login_at?: string | null
           phone?: string | null
           referral_code?: string | null
+          referred_by?: string | null
           role?: string | null
           status?: string | null
           updated_at?: string | null
         }
         Update: {
+          approval_status?: string | null
           avatar_url?: string | null
           ban_reason?: string | null
           banned_at?: string | null
@@ -786,6 +914,7 @@ export type Database = {
           last_login_at?: string | null
           phone?: string | null
           referral_code?: string | null
+          referred_by?: string | null
           role?: string | null
           status?: string | null
           updated_at?: string | null
@@ -794,6 +923,13 @@ export type Database = {
           {
             foreignKeyName: "profiles_banned_by_fkey"
             columns: ["banned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

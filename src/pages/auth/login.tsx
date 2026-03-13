@@ -112,7 +112,7 @@ export default function Login() {
       />
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
         <motion.div 
-          className="w-full max-w-md"
+          className="w-full max-w-md p-4 sm:p-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -123,7 +123,7 @@ export default function Login() {
             transition={{ duration: 0.3, delay: 0.1 }}
           >
             <Card>
-              <CardHeader className="space-y-1">
+              <CardHeader className="space-y-2">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}

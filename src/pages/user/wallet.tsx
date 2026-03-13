@@ -70,19 +70,17 @@ export default function UserWallet() {
   return (
     <DashboardLayout role="user">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Wallet</h1>
-            <p className="text-muted-foreground">Manage your coins, beans, and tokens</p>
-          </div>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Coins
-          </Button>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            My Wallet
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">
+            Manage your coins, beans, and rewards
+          </p>
         </div>
 
         {/* Balance Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Coins</CardTitle>

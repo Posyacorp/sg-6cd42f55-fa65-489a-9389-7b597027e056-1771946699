@@ -85,7 +85,7 @@ export default function Register() {
             transition={{ duration: 0.3, delay: 0.1 }}
           >
             <Card>
-              <CardHeader className="space-y-1">
+              <CardHeader className="space-y-2">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}

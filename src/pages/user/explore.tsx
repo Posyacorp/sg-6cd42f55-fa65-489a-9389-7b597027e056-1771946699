@@ -83,64 +83,54 @@ export default function ExplorePage() {
           />
         </div>
 
-        {/* Stream Grid */}
-        {filteredStreams.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Radio className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">No live streams right now</p>
-              <p className="text-sm text-muted-foreground">Check back later!</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredStreams.map((stream) => (
-              <Card
-                key={stream.id}
-                className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
-                onClick={() => joinStream(stream.id)}
-              >
-                <div className="relative aspect-video bg-muted">
-                  {stream.thumbnail_url ? (
-                    <img
-                      src={stream.thumbnail_url}
-                      alt={stream.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <Play className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                  )}
-                  <Badge className="absolute top-2 left-2 bg-red-500 gap-1">
-                    <Radio className="h-3 w-3 animate-pulse" />
-                    LIVE
-                  </Badge>
-                  <Badge variant="secondary" className="absolute bottom-2 right-2 gap-1">
-                    <Users className="h-3 w-3" />
-                    {stream.viewer_count || 0}
-                  </Badge>
-                </div>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Avatar>
-                      <AvatarImage src={stream.user?.avatar_url || ""} />
-                      <AvatarFallback>
-                        {stream.user?.full_name?.charAt(0) || "A"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">{stream.title || "Untitled Stream"}</h3>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {stream.user?.full_name || "Unknown"}
-                      </p>
-                    </div>
+        {/* Anchor Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+          {filteredStreams.map((stream) => (
+            <Card
+              key={stream.id}
+              className="cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
+              onClick={() => joinStream(stream.id)}
+            >
+              <div className="relative aspect-video bg-muted">
+                {stream.thumbnail_url ? (
+                  <img
+                    src={stream.thumbnail_url}
+                    alt={stream.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <Play className="h-12 w-12 text-muted-foreground" />
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                )}
+                <Badge className="absolute top-2 left-2 bg-red-500 gap-1">
+                  <Radio className="h-3 w-3 animate-pulse" />
+                  LIVE
+                </Badge>
+                <Badge variant="secondary" className="absolute bottom-2 right-2 gap-1">
+                  <Users className="h-3 w-3" />
+                  {stream.viewer_count || 0}
+                </Badge>
+              </div>
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <Avatar>
+                    <AvatarImage src={stream.user?.avatar_url || ""} />
+                    <AvatarFallback>
+                      {stream.user?.full_name?.charAt(0) || "A"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium truncate">{stream.title || "Untitled Stream"}</h3>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {stream.user?.full_name || "Unknown"}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </DashboardLayout>
   );

@@ -266,8 +266,12 @@ export default function GoLivePage() {
           {/* Video Preview */}
           <div className="lg:col-span-2 space-y-4">
             <Card>
-              <CardContent className="p-0">
-                <div className="relative bg-black aspect-video rounded-lg overflow-hidden">
+              <CardHeader>
+                <CardTitle className="text-lg sm:text-xl">Live Preview</CardTitle>
+                <CardDescription className="text-sm">Your stream as viewers will see it</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="relative aspect-video bg-gray-900 rounded-lg overflow-hidden">
                   <video
                     ref={videoRef}
                     autoPlay
