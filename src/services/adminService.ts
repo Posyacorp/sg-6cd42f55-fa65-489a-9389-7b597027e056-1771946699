@@ -877,7 +877,7 @@ export const adminService = {
         .select(`
           *,
           anchor:profiles!agency_applications_anchor_id_fkey(id, email, full_name)
-        `)
+        ` as any)
         .eq("status", "pending")
         .order("created_at", { ascending: true });
 
