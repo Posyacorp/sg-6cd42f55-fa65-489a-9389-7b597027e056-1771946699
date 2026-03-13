@@ -122,7 +122,8 @@ export default function AnchorDashboard() {
         .from("agency_applications")
         .insert({
           anchor_id: user?.id,
-          application_status: "pending"
+          application_status: "pending",
+          company_name: `${user?.user_metadata?.full_name || 'My'} Agency`
         });
         
       if (error) throw error;

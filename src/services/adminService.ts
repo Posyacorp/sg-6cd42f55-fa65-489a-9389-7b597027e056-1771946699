@@ -421,13 +421,13 @@ export const adminService = {
       // Get pending agency applications count
       const { data: pendingApps } = await supabase
         .from("agency_applications")
-        .select("id")
-        .eq("status", "pending");
+        .select("id" as any)
+        .eq("application_status", "pending");
 
       // Get pending withdrawals count
       const { data: pendingWithdrawals } = await supabase
         .from("withdrawal_requests")
-        .select("id")
+        .select("id" as any)
         .eq("status", "pending");
 
       const stats: UserStatistics = {
