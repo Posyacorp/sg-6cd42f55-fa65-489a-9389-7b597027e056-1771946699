@@ -1,4 +1,4 @@
- 
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 export type Json =
   | string
   | number
@@ -1401,6 +1401,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "wallet_balances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          beans_balance: number | null
+          coins_balance: number | null
+          created_at: string | null
+          id: string
+          reward_tokens_balance: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          beans_balance?: number | null
+          coins_balance?: number | null
+          created_at?: string | null
+          id?: string
+          reward_tokens_balance?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          beans_balance?: number | null
+          coins_balance?: number | null
+          created_at?: string | null
+          id?: string
+          reward_tokens_balance?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallets_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
