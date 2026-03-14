@@ -26,7 +26,7 @@ const AreaChart = dynamic(() => import("@/components/charts/AreaChart").then(mod
 });
 
 export default function UserDashboard() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isAdmin, isAgency, isAnchor } = useAuth();
   const router = useRouter();
   
   const [loading, setLoading] = useState(true);
@@ -41,13 +41,13 @@ export default function UserDashboard() {
 
   useEffect(() => {
     if (!authLoading) {
-      if (!user || user.role !== 'user') {
+      if (!user || isAdmin || isAgency || isAnchor) {
         router.push("/auth/login");
         return;
       }
       loadDashboardData();
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, isAdmin, isAgency, isAnchor, router]);
 
   const loadDashboardData = async () => {
     try {

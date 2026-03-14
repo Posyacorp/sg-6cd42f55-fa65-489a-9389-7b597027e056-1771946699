@@ -43,31 +43,45 @@ export default function Login() {
         throw signInError;
       }
 
+      if (!data.user) {
+        throw new Error("Login failed - no user data");
+      }
+
       // Get user profile to check role
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", data.user.id)
         .single();
 
-      // Redirect based on role
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        throw new Error("Failed to fetch user profile");
+      }
+
+      // Determine redirect URL based on role
       const role = profile?.role || "user";
+      let redirectUrl = "/user/dashboard";
+      
       switch (role) {
         case "admin":
-          router.push("/admin/dashboard");
+          redirectUrl = "/admin/dashboard";
           break;
         case "agency":
-          router.push("/agency/dashboard");
+          redirectUrl = "/agency/dashboard";
           break;
         case "anchor":
-          router.push("/anchor/dashboard");
+          redirectUrl = "/anchor/dashboard";
           break;
         default:
-          router.push("/user/dashboard");
+          redirectUrl = "/user/dashboard";
       }
+
+      // Use window.location for hard navigation to ensure session is established
+      window.location.href = redirectUrl;
     } catch (err: any) {
+      console.error("Login error:", err);
       setError(err.message || "Failed to login. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };

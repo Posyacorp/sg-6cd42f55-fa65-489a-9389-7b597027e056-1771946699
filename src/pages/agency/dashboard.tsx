@@ -49,7 +49,7 @@ export default function AgencyDashboard() {
       }
       loadDashboardData();
     }
-  }, [user, authLoading, isAgency]);
+  }, [user, authLoading, isAgency, router]);
 
   const loadDashboardData = async () => {
     try {

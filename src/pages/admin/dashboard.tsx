@@ -57,7 +57,7 @@ export default function AdminDashboard() {
       }
       loadDashboard();
     }
-  }, [user, authLoading, isAdmin]);
+  }, [user, authLoading, isAdmin, router]);
 
   const loadDashboard = async () => {
     try {

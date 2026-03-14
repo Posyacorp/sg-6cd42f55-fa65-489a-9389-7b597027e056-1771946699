@@ -51,7 +51,7 @@ export default function AnchorDashboard() {
       }
       loadDashboardData();
     }
-  }, [user, authLoading, isAnchor]);
+  }, [user, authLoading, isAnchor, router]);
 
   const loadDashboardData = async () => {
     try {
