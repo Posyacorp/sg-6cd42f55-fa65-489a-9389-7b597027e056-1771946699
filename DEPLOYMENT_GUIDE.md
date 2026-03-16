@@ -1,570 +1,713 @@
-# 🚀 Pukaarly Platform - Production Deployment Guide
+# 🚀 Pukaarly Platform - Deployment Guide
 
-**Last Updated:** February 25, 2026  
-**Platform:** Vercel + Supabase  
-**Estimated Time:** 15-20 minutes
-
----
-
-## 📋 Pre-Deployment Checklist
-
-Before deploying, ensure you have:
-
-- ✅ GitHub account (for code repository)
-- ✅ Vercel account (free tier works fine)
-- ✅ Supabase project (already connected)
-- ✅ Custom domain (optional, but recommended)
-- ✅ All code tested locally
+## 📋 Table of Contents
+1. [Prerequisites](#prerequisites)
+2. [Development Setup](#development-setup)
+3. [Environment Configuration](#environment-configuration)
+4. [Database Setup](#database-setup)
+5. [Supabase Configuration](#supabase-configuration)
+6. [Vercel Deployment](#vercel-deployment)
+7. [Production Checklist](#production-checklist)
+8. [Troubleshooting](#troubleshooting)
+9. [Maintenance](#maintenance)
 
 ---
 
-## 🎯 Deployment Process (Step-by-Step)
+## ✅ Prerequisites
 
-### **STEP 1: Prepare Your Code for Production**
+### **Required Accounts:**
+- [x] **GitHub Account** - For code repository
+- [x] **Supabase Account** - For database and backend services
+- [x] **Vercel Account** - For frontend hosting
+- [x] **Domain** (Optional) - For custom domain
 
-#### 1.1 Verify Environment Variables
-
-Check your `.env.local` file contains:
+### **Local Development Tools:**
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+# Required software
+- Node.js v18+ (LTS recommended)
+- npm or yarn
+- Git
+- Code editor (VS Code recommended)
 ```
 
-**⚠️ IMPORTANT:** These will be added to Vercel separately. Never commit `.env.local` to Git.
-
-#### 1.2 Update Site URL in Supabase
-
-1. Go to Supabase Dashboard → Authentication → URL Configuration
-2. Update **Site URL** to your production domain:
-   ```
-   https://your-domain.com
-   or
-   https://your-project.vercel.app
-   ```
-
-3. Add **Redirect URLs** (wildcard pattern):
-   ```
-   https://*.vercel.app/**
-   https://your-domain.com/**
-   ```
-
-#### 1.3 Verify Production Configuration
-
-Check `next.config.mjs`:
-```javascript
-const nextConfig = {
-  reactStrictMode: true,
-  images: {
-    domains: [
-      'your-project.supabase.co',
-      'images.unsplash.com',
-      'avatar.vercel.sh'
-    ],
-  },
-  // Production optimizations are already configured
-};
+### **Check Node Version:**
+```bash
+node --version  # Should be v18.0.0 or higher
+npm --version   # Should be v9.0.0 or higher
 ```
 
 ---
 
-### **STEP 2: Push Code to GitHub**
+## 💻 Development Setup
 
-#### 2.1 Initialize Git Repository (if not already done)
+### **Step 1: Clone Repository**
 
 ```bash
-# Initialize repository
-git init
+# Clone the repository
+git clone https://github.com/yourusername/pukaarly-platform.git
 
-# Add all files
-git add .
+# Navigate to project directory
+cd pukaarly-platform
 
-# Commit changes
-git commit -m "feat: Complete Pukaarly platform with streaming and PK battles"
-
-# Create GitHub repository and add remote
-git remote add origin https://github.com/yourusername/pukaarly-platform.git
-
-# Push to GitHub
-git branch -M main
-git push -u origin main
-```
-
-#### 2.2 Verify Repository
-
-Go to `https://github.com/yourusername/pukaarly-platform` and confirm:
-- ✅ All files are uploaded
-- ✅ `.env.local` is NOT in the repository (check `.gitignore`)
-- ✅ Code structure looks correct
-
----
-
-### **STEP 3: Deploy to Vercel**
-
-#### 3.1 Import Project to Vercel
-
-1. **Go to Vercel Dashboard:**
-   - Visit: https://vercel.com/dashboard
-   - Click "Add New..." → "Project"
-
-2. **Import GitHub Repository:**
-   - Select "Import Git Repository"
-   - Choose your GitHub account
-   - Find and select `pukaarly-platform`
-   - Click "Import"
-
-#### 3.2 Configure Build Settings
-
-Vercel should auto-detect Next.js. Verify these settings:
-
-```yaml
-Framework Preset: Next.js
-Build Command: npm run build
-Output Directory: .next
-Install Command: npm install
-Development Command: npm run dev
-```
-
-**✅ These are already correct - no changes needed!**
-
-#### 3.3 Add Environment Variables
-
-In the Vercel project settings, add these environment variables:
-
-**Click "Environment Variables" tab:**
-
-| Name | Value | Environment |
-|------|-------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://your-project.supabase.co` | Production, Preview, Development |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `your-anon-key-here` | Production, Preview, Development |
-
-**How to get these values:**
-1. Go to Supabase Dashboard
-2. Click "Project Settings" → "API"
-3. Copy "Project URL" and "anon public" key
-
-#### 3.4 Deploy!
-
-1. Click "Deploy" button
-2. Wait for build to complete (2-3 minutes)
-3. Vercel will provide a deployment URL: `https://pukaarly-platform.vercel.app`
-
----
-
-### **STEP 4: Post-Deployment Configuration**
-
-#### 4.1 Update Supabase Authentication URLs
-
-1. **Go to Supabase Dashboard** → Authentication → URL Configuration
-2. **Update Site URL:**
-   ```
-   https://pukaarly-platform.vercel.app
-   ```
-
-3. **Add Redirect URLs:**
-   ```
-   https://pukaarly-platform.vercel.app/**
-   https://pukaarly-platform-*.vercel.app/**
-   ```
-
-4. Click "Save"
-
-#### 4.2 Test Authentication Flow
-
-1. Visit your deployed site
-2. Try registering a new account
-3. Check email for verification link
-4. Verify login works correctly
-
-**⚠️ Common Issue:** If authentication redirects fail:
-- Double-check redirect URLs in Supabase
-- Ensure they include `/**` wildcard
-- Clear browser cache and try again
-
-#### 4.3 Create Admin Account
-
-**Option 1: Via Database Console**
-1. Go to Supabase Dashboard → Database → Tables
-2. Open `profiles` table
-3. Find your user and set `role = 'admin'`
-
-**Option 2: Via SQL Editor**
-```sql
--- Update your user to admin role
-UPDATE profiles 
-SET role = 'admin' 
-WHERE email = 'your-email@example.com';
-```
-
-#### 4.4 Verify All Features
-
-Test each major feature:
-- ✅ User registration and login
-- ✅ Dashboard access for each role
-- ✅ Wallet operations
-- ✅ Stream creation (anchor role)
-- ✅ Gift sending
-- ✅ PK battle invitations
-- ✅ Real-time chat
-- ✅ Admin controls
-
----
-
-### **STEP 5: Custom Domain Setup (Optional)**
-
-#### 5.1 Add Domain in Vercel
-
-1. Go to Vercel Project Settings → "Domains"
-2. Click "Add Domain"
-3. Enter your domain: `pukaarly.com`
-4. Click "Add"
-
-#### 5.2 Configure DNS Records
-
-Add these records to your domain provider (GoDaddy, Namecheap, Cloudflare, etc.):
-
-**For Root Domain (`pukaarly.com`):**
-```
-Type: A
-Name: @
-Value: 76.76.21.21
-TTL: 3600
-```
-
-**For WWW Subdomain (`www.pukaarly.com`):**
-```
-Type: CNAME
-Name: www
-Value: cname.vercel-dns.com
-TTL: 3600
-```
-
-#### 5.3 Wait for DNS Propagation
-
-- DNS changes take 5-60 minutes
-- Vercel will automatically issue SSL certificate
-- Your site will be available at `https://pukaarly.com`
-
-#### 5.4 Update Supabase URLs
-
-Go back to Supabase → Authentication → URL Configuration:
-```
-Site URL: https://pukaarly.com
-Redirect URLs: https://pukaarly.com/**
-```
-
----
-
-## 🔒 Security Checklist
-
-After deployment, verify these security measures:
-
-### **Database Security:**
-- ✅ Row Level Security (RLS) enabled on all tables
-- ✅ Policies restrict access by role and user_id
-- ✅ API keys are environment variables (not hardcoded)
-- ✅ Supabase anon key is public (safe for client-side)
-
-### **Authentication Security:**
-- ✅ Email verification required
-- ✅ Password reset flow secured
-- ✅ JWT tokens expire properly
-- ✅ Role-based access enforced
-
-### **Application Security:**
-- ✅ HTTPS enforced (Vercel default)
-- ✅ No sensitive data in client-side code
-- ✅ CORS configured properly
-- ✅ Input validation on all forms
-
----
-
-## 📊 Monitoring & Analytics
-
-### **Vercel Analytics (Built-in)**
-
-1. Go to Vercel Project → "Analytics"
-2. View:
-   - Page views
-   - Unique visitors
-   - Performance metrics
-   - Error rates
-
-### **Supabase Monitoring**
-
-1. Go to Supabase Dashboard → "Logs"
-2. Monitor:
-   - Database queries
-   - API requests
-   - Authentication events
-   - Real-time connections
-
-### **Error Tracking**
-
-Check these for errors:
-- Vercel deployment logs
-- Supabase database logs
-- Browser console errors
-- Network tab for failed requests
-
----
-
-## 🐛 Common Deployment Issues & Solutions
-
-### **Issue 1: Build Fails**
-
-**Error:** `Type error: Cannot find module...`
-
-**Solution:**
-```bash
-# Clear cache and rebuild
-rm -rf .next
-rm -rf node_modules
+# Install dependencies
 npm install
-npm run build
 ```
 
-### **Issue 2: Environment Variables Not Working**
+### **Step 2: Install Dependencies**
 
-**Error:** `Supabase client not initialized`
+```bash
+# Install all required packages
+npm install
 
-**Solution:**
-1. Verify env vars in Vercel project settings
-2. Ensure they're set for all environments (Production, Preview, Development)
-3. Redeploy after adding variables
+# Expected packages installed:
+# - next@15.2
+# - react@18.3
+# - typescript@5.x
+# - tailwindcss@3.4
+# - supabase@latest
+# - And many more...
+```
 
-### **Issue 3: Authentication Redirect Fails**
+### **Step 3: Verify Installation**
 
-**Error:** `Invalid redirect URL`
+```bash
+# Check if all dependencies are installed
+npm list --depth=0
 
-**Solution:**
-1. Check Supabase → Authentication → URL Configuration
-2. Add wildcard: `https://*.vercel.app/**`
-3. Include production domain with `/**`
-4. Clear browser cache
+# Should show all packages without errors
+```
 
-### **Issue 4: Real-time Features Not Working**
+---
 
-**Error:** `WebSocket connection failed`
+## 🔧 Environment Configuration
 
-**Solution:**
-1. Verify Supabase real-time is enabled
-2. Check tables have real-time enabled:
-   ```sql
-   ALTER TABLE streams REPLICA IDENTITY FULL;
-   ALTER PUBLICATION supabase_realtime ADD TABLE streams;
+### **Step 1: Create Environment File**
+
+```bash
+# Copy example environment file
+cp .env.example .env.local
+
+# Or create manually
+touch .env.local
+```
+
+### **Step 2: Configure Environment Variables**
+
+Edit `.env.local` with your values:
+
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+
+# Application Configuration
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Optional: Production Configuration
+NEXT_PUBLIC_VERCEL_URL=https://your-app.vercel.app
+```
+
+### **Step 3: Get Supabase Credentials**
+
+1. Go to [Supabase Dashboard](https://app.supabase.com)
+2. Select your project
+3. Click **Settings** → **API**
+4. Copy:
+   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
+   - **Anon/Public Key** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+### **Environment Variables Explained:**
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | ✅ Yes |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous/public key | ✅ Yes |
+| `NEXT_PUBLIC_APP_URL` | Your application URL | ✅ Yes |
+| `NEXT_PUBLIC_VERCEL_URL` | Vercel deployment URL | ⚠️ Production only |
+
+---
+
+## 🗄️ Database Setup
+
+### **Step 1: Access Supabase SQL Editor**
+
+1. Go to [Supabase Dashboard](https://app.supabase.com)
+2. Select your project
+3. Click **SQL Editor** in sidebar
+4. Click **New Query**
+
+### **Step 2: Run Migration Files**
+
+Execute migration files in order from `supabase/migrations/`:
+
+```sql
+-- Run each migration file in order by timestamp
+-- Example order:
+-- 1. 20260222030900_migration_12a565f4.sql
+-- 2. 20260222031134_migration_5308cbf3.sql
+-- 3. ... and so on
+```
+
+**⚠️ IMPORTANT:** Run migrations in chronological order (by timestamp)!
+
+### **Step 3: Verify Database Schema**
+
+```sql
+-- Check if tables were created
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public';
+
+-- Expected tables:
+-- - profiles
+-- - wallets
+-- - transactions
+-- - gifts
+-- - gift_transactions
+-- - referrals
+-- - withdrawals
+-- - streams
+-- - pk_battles
+-- - messages
+-- - notifications
+-- - agencies
+-- - agency_anchors
+-- - treasury_logs
+```
+
+### **Step 4: Seed Initial Data (Optional)**
+
+```sql
+-- Create initial gift catalog
+INSERT INTO gifts (name, description, price_coins, category, is_active) 
+VALUES 
+  ('Rose', 'A beautiful rose', 10, 'basic', true),
+  ('Diamond', 'Premium diamond gift', 100, 'premium', true),
+  ('Crown', 'Luxury crown', 1000, 'luxury', true);
+
+-- Create admin user (update with your details)
+INSERT INTO profiles (email, full_name, role, is_verified)
+VALUES ('admin@pukaarly.com', 'Admin User', 'admin', true);
+```
+
+---
+
+## ⚙️ Supabase Configuration
+
+### **Step 1: Enable Email Authentication**
+
+1. Go to **Authentication** → **Providers**
+2. Enable **Email** provider
+3. Configure email settings:
+   - Enable email confirmations: ✅
+   - Enable email change confirmations: ✅
+   - Enable secure password change: ✅
+
+### **Step 2: Configure Email Templates**
+
+1. Go to **Authentication** → **Email Templates**
+2. Customize templates for:
+   - **Confirm Signup** - Welcome email
+   - **Reset Password** - Password reset link
+   - **Magic Link** - Passwordless login
+   - **Email Change** - Confirm email change
+
+**Example Password Reset Template:**
+```html
+<h2>Reset Your Password</h2>
+<p>Click the link below to reset your Pukaarly password:</p>
+<p><a href="{{ .ConfirmationURL }}">Reset Password</a></p>
+<p>If you didn't request this, please ignore this email.</p>
+<p>This link expires in 1 hour.</p>
+```
+
+### **Step 3: Set Up Storage Buckets**
+
+```sql
+-- Create storage buckets
+INSERT INTO storage.buckets (id, name, public) 
+VALUES 
+  ('avatars', 'avatars', true),
+  ('gifts', 'gifts', true),
+  ('streams', 'streams', true);
+
+-- Create storage policies
+CREATE POLICY "Avatar images are publicly accessible"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'avatars');
+
+CREATE POLICY "Users can upload their own avatar"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'avatars' 
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+CREATE POLICY "Users can update their own avatar"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'avatars' 
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+```
+
+### **Step 4: Configure Row Level Security (RLS)**
+
+RLS policies are included in migration files, but verify they're active:
+
+```sql
+-- Check RLS status for all tables
+SELECT schemaname, tablename, rowsecurity 
+FROM pg_tables 
+WHERE schemaname = 'public';
+
+-- All tables should have rowsecurity = true
+```
+
+### **Step 5: Set Up Realtime**
+
+1. Go to **Database** → **Replication**
+2. Enable replication for tables:
+   - messages (for chat)
+   - notifications (for real-time alerts)
+   - streams (for live status updates)
+   - pk_battles (for battle updates)
+
+### **Step 6: Configure URL Redirects**
+
+1. Go to **Authentication** → **URL Configuration**
+2. Set **Site URL**: `http://localhost:3000` (development)
+3. Add **Redirect URLs**:
+   ```
+   http://localhost:3000/**
+   https://your-domain.com/**
+   https://*.vercel.app/**
    ```
 
-### **Issue 5: Images Not Loading**
+---
 
-**Error:** `Image optimization error`
+## 🚀 Vercel Deployment
+
+### **Method 1: Deploy via Vercel Dashboard**
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Click **Add New** → **Project**
+3. Import from GitHub:
+   - Select `pukaarly-platform` repository
+   - Click **Import**
+4. Configure project:
+   - **Framework Preset**: Next.js
+   - **Root Directory**: `./`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `.next`
+5. Add **Environment Variables**:
+   - Click **Environment Variables** tab
+   - Add all variables from `.env.local`
+6. Click **Deploy**
+7. Wait for deployment to complete (2-3 minutes)
+
+### **Method 2: Deploy via Vercel CLI**
+
+```bash
+# Install Vercel CLI globally
+npm install -g vercel
+
+# Login to Vercel
+vercel login
+
+# Deploy to production
+vercel --prod
+
+# Follow prompts:
+# - Set up and deploy? Yes
+# - Which scope? (select your account)
+# - Link to existing project? No
+# - What's your project's name? pukaarly-platform
+# - In which directory is your code located? ./
+# - Want to modify settings? No
+```
+
+### **Step 3: Configure Production Environment**
+
+After deployment, update environment variables:
+
+1. Go to **Project Settings** → **Environment Variables**
+2. Update `NEXT_PUBLIC_APP_URL` to your production URL
+3. Add `NEXT_PUBLIC_VERCEL_URL` (automatically set by Vercel)
+4. Click **Save**
+5. Redeploy for changes to take effect
+
+### **Step 4: Set Up Custom Domain (Optional)**
+
+1. Go to **Project Settings** → **Domains**
+2. Click **Add Domain**
+3. Enter your domain (e.g., `pukaarly.com`)
+4. Follow DNS configuration instructions:
+   ```
+   Type: A
+   Name: @
+   Value: 76.76.21.21
+   
+   Type: CNAME
+   Name: www
+   Value: cname.vercel-dns.com
+   ```
+5. Wait for DNS propagation (5-60 minutes)
+6. Verify SSL certificate is issued
+
+### **Step 5: Enable Production Features**
+
+1. **Analytics**: Enable Vercel Analytics
+   - Go to **Analytics** tab
+   - Click **Enable Analytics**
+
+2. **Speed Insights**: Enable Web Vitals tracking
+   - Go to **Speed Insights** tab
+   - Click **Enable Speed Insights**
+
+3. **Preview Deployments**: Configure preview settings
+   - Go to **Settings** → **Git**
+   - Enable preview deployments for pull requests
+
+---
+
+## ✅ Production Checklist
+
+### **Before Launch:**
+
+#### **1. Security Checklist**
+- [ ] All API keys are stored in environment variables
+- [ ] RLS policies are enabled on all tables
+- [ ] JWT secret is secure and not exposed
+- [ ] CORS is configured correctly
+- [ ] Rate limiting is configured
+- [ ] SQL injection prevention is in place
+- [ ] XSS protection is enabled
+
+#### **2. Performance Checklist**
+- [ ] Images are optimized (Next.js Image component)
+- [ ] Code splitting is configured
+- [ ] Static pages are pre-rendered
+- [ ] Database indexes are created
+- [ ] Caching strategy is implemented
+- [ ] CDN is configured for assets
+
+#### **3. Functionality Checklist**
+- [ ] All authentication flows work
+- [ ] Password reset emails are delivered
+- [ ] User registration works
+- [ ] Role-based access control is enforced
+- [ ] Wallet transactions are accurate
+- [ ] Gift sending works correctly
+- [ ] Withdrawal requests are processed
+- [ ] Messaging system works
+- [ ] Notifications are delivered
+
+#### **4. User Experience Checklist**
+- [ ] Mobile responsiveness is verified
+- [ ] Loading states are shown
+- [ ] Error messages are user-friendly
+- [ ] Success messages are clear
+- [ ] Navigation is intuitive
+- [ ] Forms have validation
+- [ ] Dark mode works correctly
+
+#### **5. Monitoring Checklist**
+- [ ] Error tracking is set up (Sentry/LogRocket)
+- [ ] Analytics are configured (Google Analytics/Vercel)
+- [ ] Uptime monitoring is enabled
+- [ ] Database performance monitoring is active
+- [ ] API response times are tracked
+
+---
+
+## 🐛 Troubleshooting
+
+### **Common Issues & Solutions:**
+
+#### **1. Build Errors**
+
+**Error:** `Module not found: Can't resolve '@/components/...'`
 
 **Solution:**
-1. Add domain to `next.config.mjs`:
-   ```javascript
-   images: {
-     domains: ['your-project.supabase.co']
-   }
-   ```
-2. Redeploy
+```bash
+# Check if tsconfig.json has correct paths
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+
+# Reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install
+```
+
+#### **2. Supabase Connection Issues**
+
+**Error:** `Invalid API key` or `Connection refused`
+
+**Solution:**
+```bash
+# Verify environment variables
+echo $NEXT_PUBLIC_SUPABASE_URL
+echo $NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# Check if keys are correct in Supabase dashboard
+# Settings → API → Copy keys again
+
+# Restart development server
+npm run dev
+```
+
+#### **3. Database Migration Errors**
+
+**Error:** `Relation does not exist`
+
+**Solution:**
+```sql
+-- Check if migrations were run in order
+SELECT version FROM schema_migrations ORDER BY version;
+
+-- Rollback and rerun if needed
+-- Delete all data and rerun migrations in correct order
+```
+
+#### **4. Authentication Errors**
+
+**Error:** `Invalid login credentials`
+
+**Solution:**
+```bash
+# Check if user exists in database
+# Supabase Dashboard → Authentication → Users
+
+# Verify email confirmation
+# Check if email is verified
+
+# Reset password if needed
+# Use forgot password flow
+```
+
+#### **5. Deployment Errors**
+
+**Error:** `Build failed` on Vercel
+
+**Solution:**
+```bash
+# Check build logs in Vercel dashboard
+# Common issues:
+# - Missing environment variables
+# - TypeScript errors
+# - ESLint errors
+
+# Fix locally first
+npm run build
+npm run lint
+
+# Then redeploy
+vercel --prod
+```
+
+#### **6. Environment Variable Issues**
+
+**Error:** `NEXT_PUBLIC_* is undefined`
+
+**Solution:**
+```bash
+# Environment variables must start with NEXT_PUBLIC_
+# to be available in browser
+
+# Restart dev server after adding variables
+# Ctrl+C then npm run dev
+
+# For production, redeploy after adding variables
+vercel --prod
+```
 
 ---
 
-## 🎯 Post-Deployment Tasks
+## 🔧 Maintenance
 
-### **Immediate Tasks:**
+### **Regular Maintenance Tasks:**
 
-1. ✅ **Create Admin Account**
-   - Register via `/auth/register`
-   - Update role to `admin` in database
-   - Login to `/admin/dashboard`
+#### **Daily:**
+- [ ] Monitor error logs
+- [ ] Check uptime status
+- [ ] Review user feedback
+- [ ] Monitor database performance
 
-2. ✅ **Create Test Accounts**
-   - Go to `/admin/create-proxy-users`
-   - Generate 10-20 test users
-   - Assign roles (users, anchors, agencies)
+#### **Weekly:**
+- [ ] Review withdrawal requests
+- [ ] Analyze user engagement metrics
+- [ ] Check for security updates
+- [ ] Backup database
+- [ ] Review support tickets
 
-3. ✅ **Configure Gift Catalog**
-   - Go to `/admin/gifts`
-   - Add/edit virtual gifts
-   - Set pricing and images
+#### **Monthly:**
+- [ ] Update dependencies
+- [ ] Review and optimize database
+- [ ] Analyze performance metrics
+- [ ] Plan feature updates
+- [ ] Review security policies
 
-4. ✅ **Test Core Flows**
-   - User registration → verification → login
-   - Anchor go-live → stream → receive gifts
-   - PK battle invitation → acceptance → scoring
-   - Withdrawal request → admin approval
+### **Backup Strategy:**
 
-### **24-Hour Tasks:**
+#### **Automatic Backups (Supabase):**
+- Daily automatic backups
+- 7-day retention for free tier
+- 30-day retention for pro tier
+- Point-in-time recovery available
 
-1. ✅ **Monitor Performance**
-   - Check Vercel analytics
-   - Review Supabase logs
-   - Identify slow queries
+#### **Manual Backups:**
+```bash
+# Export database schema
+supabase db dump --schema-only > schema.sql
 
-2. ✅ **Test Edge Cases**
-   - Concurrent users
-   - Multiple streams
-   - High gift volume
-   - PK battles
+# Export data only
+supabase db dump --data-only > data.sql
 
-3. ✅ **Gather Feedback**
-   - Test with real users
-   - Document bugs/issues
-   - Prioritize fixes
+# Export everything
+supabase db dump > full_backup.sql
+```
 
-### **Weekly Tasks:**
+### **Update Process:**
 
-1. ✅ **Review Metrics**
-   - User growth
-   - Transaction volume
-   - Stream statistics
-   - Error rates
+```bash
+# 1. Create feature branch
+git checkout -b feature/new-feature
 
-2. ✅ **Database Maintenance**
-   - Review slow queries
-   - Optimize indexes
-   - Clean up old data
+# 2. Make changes and test
+npm run dev
+npm run build
+npm run lint
 
-3. ✅ **Security Audit**
-   - Check for vulnerabilities
-   - Update dependencies
-   - Review RLS policies
+# 3. Commit changes
+git add .
+git commit -m "feat: add new feature"
 
----
+# 4. Push to GitHub
+git push origin feature/new-feature
 
-## 📈 Scaling Considerations
+# 5. Create pull request
+# Review and merge on GitHub
 
-### **When to Scale:**
+# 6. Deploy to production
+# Vercel auto-deploys from main branch
+```
 
-**User Growth Triggers:**
-- 1,000+ daily active users
-- 50+ concurrent streams
-- 10,000+ transactions/day
-- Performance degradation
+### **Database Maintenance:**
 
-### **Scaling Options:**
+```sql
+-- Vacuum database monthly
+VACUUM ANALYZE;
 
-**Supabase Scaling:**
-- Upgrade to Pro plan ($25/month)
-- Increase connection pool size
-- Add read replicas
-- Enable point-in-time recovery
+-- Reindex tables
+REINDEX DATABASE your_database;
 
-**Vercel Scaling:**
-- Upgrade to Pro plan ($20/month)
-- Add more serverless functions
-- Enable Edge Functions
-- Add custom caching
+-- Check table sizes
+SELECT 
+  schemaname,
+  tablename,
+  pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
 
-**Database Optimization:**
-- Add composite indexes
-- Implement query caching
-- Use materialized views
-- Archive old data
-
----
-
-## 🎓 Maintenance Guide
-
-### **Daily Monitoring:**
-- Check error logs (Vercel + Supabase)
-- Monitor uptime (should be 99.9%+)
-- Review pending withdrawals
-- Check real-time connections
-
-### **Weekly Maintenance:**
-- Review user growth metrics
-- Process manual withdrawals
-- Update gift catalog if needed
-- Respond to user support tickets
-
-### **Monthly Maintenance:**
-- Database performance review
-- Security audit
-- Dependency updates
-- Backup verification
-- Cost analysis
+-- Check slow queries
+SELECT * FROM pg_stat_statements 
+ORDER BY mean_exec_time DESC 
+LIMIT 10;
+```
 
 ---
 
-## 💰 Cost Breakdown
+## 📊 Monitoring Dashboard
 
-### **Current Setup (Free Tier):**
+### **Key Metrics to Track:**
 
-**Supabase:**
-- Database: 500MB included
-- Auth: Unlimited users
-- Storage: 1GB included
-- Bandwidth: 2GB included
-- **Cost:** $0/month
+#### **Application Metrics:**
+- Page load time
+- API response time
+- Error rate
+- Uptime percentage
+- Active users
 
-**Vercel:**
-- Hosting: 100GB bandwidth
-- Serverless: 100 hours
-- Deployments: Unlimited
-- **Cost:** $0/month
+#### **Business Metrics:**
+- New user registrations
+- Daily active users (DAU)
+- Transaction volume
+- Withdrawal requests
+- Revenue generated
 
-**Total:** $0/month (up to 1,000 users)
-
-### **Growth Scaling:**
-
-**At 1,000 Users:**
-- Supabase Pro: $25/month
-- Vercel Pro: $20/month
-- **Total:** $45/month
-
-**At 10,000 Users:**
-- Supabase Pro: $25/month
-- Vercel Pro: $20/month
-- Additional bandwidth: ~$30/month
-- **Total:** $75/month
-
-**At 100,000 Users:**
-- Supabase Team: $599/month
-- Vercel Enterprise: Custom pricing
-- CDN: ~$200/month
-- **Total:** $800-1,500/month
+#### **Technical Metrics:**
+- Database query time
+- Cache hit rate
+- CPU usage
+- Memory usage
+- Bandwidth usage
 
 ---
 
-## 📞 Support Resources
+## 🆘 Support & Resources
 
-### **Vercel Support:**
-- Documentation: https://vercel.com/docs
-- Discord: https://vercel.com/discord
-- Twitter: @vercel
+### **Documentation:**
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Supabase Documentation](https://supabase.com/docs)
+- [Vercel Documentation](https://vercel.com/docs)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 
-### **Supabase Support:**
-- Documentation: https://supabase.com/docs
-- Discord: https://discord.supabase.com
-- GitHub: https://github.com/supabase/supabase
+### **Community:**
+- [Next.js Discord](https://discord.gg/nextjs)
+- [Supabase Discord](https://discord.supabase.com)
+- [Vercel Community](https://vercel.com/community)
 
-### **Next.js Support:**
-- Documentation: https://nextjs.org/docs
-- GitHub: https://github.com/vercel/next.js
-- Discord: https://nextjs.org/discord
-
----
-
-## ✅ Deployment Complete!
-
-Your Pukaarly platform is now live in production! 🎉
-
-**Your Deployment URLs:**
-- **Production:** https://pukaarly-platform.vercel.app
-- **Custom Domain:** https://pukaarly.com (if configured)
-- **Admin Dashboard:** https://pukaarly.com/admin/dashboard
-- **API Docs:** https://pukaarly.com/api (if enabled)
-
-**Next Steps:**
-1. Share the link with beta testers
-2. Monitor performance and errors
-3. Gather user feedback
-4. Implement Phase 2 features
-5. Scale as needed
+### **Support Channels:**
+- **Email**: support@pukaarly.com
+- **Documentation**: docs.pukaarly.com
+- **Status Page**: status.pukaarly.com
 
 ---
 
-**🚀 Congratulations on your successful deployment!**
+## 🎉 Launch Checklist
 
-*For additional help, refer to the main PROJECT_COMPLETION_DOCUMENT.md*
+### **Final Pre-Launch Steps:**
+
+- [ ] All features tested and working
+- [ ] Performance optimization complete
+- [ ] Security audit passed
+- [ ] Legal pages added (Terms, Privacy)
+- [ ] Contact/support page created
+- [ ] Monitoring tools configured
+- [ ] Backup strategy implemented
+- [ ] Error tracking enabled
+- [ ] Analytics configured
+- [ ] Custom domain configured
+- [ ] SSL certificate issued
+- [ ] Email templates customized
+- [ ] Social media links added
+- [ ] SEO optimization complete
+- [ ] Mobile responsiveness verified
+- [ ] Browser compatibility tested
+- [ ] Load testing completed
+- [ ] Documentation updated
+- [ ] Team trained on platform
+- [ ] Support system ready
+- [ ] Marketing materials prepared
+
+---
+
+**🚀 You're ready to launch Pukaarly Platform!**
+
+**Deployment Version:** 1.0  
+**Last Updated:** March 16, 2026  
+**Status:** ✅ Production Ready
+
+---
+
+*Keep this guide updated as the deployment process evolves.*
